@@ -1,0 +1,11 @@
+\babel@toc {english}{}\relax 
+\contentsline {chapter}{Introduction}{5}{chapter*.2}%
+\contentsline {chapter}{\numberline {1}Security protocol fundamentals}{6}{chapter.1}%
+\contentsline {section}{\numberline {1.1}Key concept}{6}{section.1.1}%
+\contentsline {subsection}{\numberline {1.1.1}Authentication, authorisation and federation}{6}{subsection.1.1.1}%
+\contentsline {subsection}{\numberline {1.1.2}Tokens, assertion and session}{7}{subsection.1.1.2}%
+\contentsline {chapter}{\numberline {2}Deuxième chapitre}{10}{chapter.2}%
+\contentsline {chapter}{\numberline {3}Conclusion}{11}{chapter.3}%
+\contentsline {chapter}{Bibliographie}{11}{chapter.3}%
+\contentsline {chapter}{Annexe A: Ce que je ne veux pas mettre dans la partie principale du document}{13}{chapter*.12}%
+\contentsline {chapter}{Annexe B: Une autre pour la route}{13}{section*.13}%

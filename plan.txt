@@ -1,0 +1,107 @@
+CHAPITRE 1 : FONDAMENTAUX DES PROTOCOLES D'IDENTITÉ
+1.1. Concepts clés
+    - Authentification vs Autorisation vs Fédération
+    - Tokens, assertions, sessions
+    - Modèles de confiance (IdP, AS, OP, SP, RP)
+1.2. Positionnement des trois protocoles
+    - SAML : le vétéran de la fédération d'identité (2005)
+    - OAuth 2.0 : le framework d'autorisation (2012)
+    - OIDC : la couche d'authentification sur OAuth (2014)
+1.3. Périmètre et limites de l'étude
+    - Focus entreprise (B2E, B2B)
+    - Exclusions : protocoles alternatifs (Kerberos, LDAP, etc.)
+
+CHAPITRE 2 : ANALYSE COMPARATIVE TECHNIQUE
+2.1. Architecture et flux d'authentification/autorisation
+    - Flows SAML : SP-initiated vs IdP-initiated
+    - Flows OAuth 2.0 : Authorization Code, Client Credentials, etc.
+    - Flows OIDC : héritage OAuth + ID Token
+    > Tableau comparatif synthétique
+    
+2.2. Formats et structures des tokens
+    - SAML : assertions XML signées
+    - OAuth 2.0 : tokens opaques ou JWT
+    - OIDC : ID Token JWT standardisé
+    > Analyse taille, parsing, validation
+    
+2.3. Mécanismes de sécurité
+    - SAML : signatures XML, PKI, encryption
+    - OAuth 2.0 : PKCE, state, HTTPS
+    - OIDC : nonce, at_hash, algorithmes signature
+    > Comparaison vulnérabilités et mitigations (appui sur arXiv)
+    
+2.4. Gestion des sessions et révocation
+    - SAML : SSO, Single Logout
+    - OAuth 2.0 : refresh tokens, révocation RFC 7009
+    - OIDC : session management, logout flows
+    > Matrice de comparaison
+
+CHAPITRE 3 : ANALYSE COMPARATIVE OPÉRATIONNELLE
+3.1. Complexité de mise en œuvre
+    - Courbes d'apprentissage
+    - Prérequis infrastructure (PKI, serveurs, etc.)
+    - Disponibilité bibliothèques 
+    > Évaluation des coûts initiaux
+    
+3.2. Maintenance et évolution
+    - Gestion certificats SAML vs clés JWT
+    - Évolution des specs (stabilité SAML vs dynamisme OAuth/OIDC)
+    - Compétences disponibles sur le marché
+    > Évaluation des coûts long terme
+    
+3.3. Interopérabilité et écosystème
+    - SAML : maturité entreprise, base installée
+    - OAuth 2.0 : fragmentation implémentations
+    - OIDC : certifications, standardisation
+    > Impact sur le choix technologique
+
+CHAPITRE 4 : ANALYSE COMPARATIVE MÉTIER
+4.1. Cas d'usage privilégiés
+    - SAML : fédération B2B, applications legacy
+    - OAuth 2.0 : APIs, autorisation granulaire
+    - OIDC : SSO moderne, applications mobiles
+    > Mapping protocoles et besoins
+    
+4.2. Expérience utilisateur et adoption
+    - SSO : transparence SAML vs modernité OIDC
+    - Consentement : granularité OAuth/OIDC
+    - Support multi-plateforme
+    
+4.3. Conformité réglementaire
+    - RGPD : minimisation données, consentement
+    - Sectoriels : PSD2 (finance), HIPAA (santé), eIDAS (EU)
+    - Certifications et audits
+    > Matrice de conformité par protocole
+
+CHAPITRE 5 : SYNTHÈSE COMPARATIVE ET MODÈLE DE DÉCISION
+5.1. Synthèse forces/faiblesses
+    - Tableau récapitulatif multicritères
+    - Axes d'analyse : maturité/modernité, spécialisation/polyvalence
+    - Tendances d'évolution (déclin SAML, croissance OIDC)
+    
+5.2. Framework d'aide à la décision
+    - Arbre de décision contextuel
+    - Matrice multicritères pondérée
+    - Grille d'analyse par des cas d'usage
+    
+5.3. Application à des scénarios réels
+    - Cas 1 : Grande entreprise avec legacy (ex: banque)
+    - Cas 2 : Start-up tech cloud-native (ex: fintech)
+    - Cas 3 : Fédération inter-organisations (ex: universités)
+    > Démonstration du modèle de décision
+
+CHAPITRE 6 : RECOMMANDATIONS ET PERSPECTIVES
+6.1. Lignes directrices pour le choix du protocole
+    - Critères décisionnels prioritaires
+    - Stratégies de migration (SAML → OIDC)
+    - Approches hybrides
+    
+6.2. Bonnes pratiques d'implémentation
+    - Par protocole : pièges à éviter, configurations recommandées
+    - Transverses : monitoring, audit, formation équipes
+    
+6.3. Perspectives d'évolution
+    - Convergence vers OIDC ?
+    - Émergence de nouveaux besoins (IoT, edge computing)
+
+
