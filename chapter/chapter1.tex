@@ -1,0 +1,172 @@
+\documentclass[../memoire.tex]{subfiles}
+\begin{document}
+
+\chapter{Security protocol fundamentals} \label{ch_prem}
+
+
+\section{Key concept} \label{sec_un}
+
+
+\subsection{Authentication, authorization, and federation} \label{sous_sec_un}
+
+To understand the differences between authentication, authorization, and federation, it is important to first define each concept and clarify their respective roles in the context of enterprise identity and access management.
+
+\subsubsection*{Authentication}
+
+Authentication is the process by which an application confirms the identity of a user, device, or system. It is a critical component of security, as it ensures that only legitimate entities can access sensitive information or perform certain actions. Authentication can be achieved through various methods, including passwords, biometrics (such as fingerprint or facial recognition), security tokens, or multifactor authentication (MFA), which combines multiple methods for enhanced security. The primary goal of authentication is to establish trust and verify the identity of users or systems before granting access to resources or services\cite{richer2017}.
+
+For example, when a student log into their university portal, they are required to provide their matriculation number, password, or a second factor such as a code sent to their mobile device to confirm their identity. 
+
+\subsubsection*{Authorization}
+
+Authorization, by contrast, is the process of granting a user or system access to a resource on behalf of another user or system\cite{richer2017}. A critical distinction must be drawn here: authorization does not necessarily imply that the granting system knows who is making the request — only that a valid authorization credential (such as a token or code) has been presented. As long as this credential is valid, access is granted, regardless of the actual identity of the requester.
+
+Consider a user who wish to publish a photo on a social media platform: the platform requests access to the user's photo gallery. The platform will not ask for the user's credentials, but for obtaining a limited, scoped access only for that specific resource. This separation of identity from access rights is foundational to modern authorization frameworks, and forms the core purpose of OAuth 2.0, as will be examined in Chapter 2.
+
+\subsubsection*{Federation}
+
+Federation is also known as identity federation. It allows users to access multiple services or applications by using a single, agreed-upon set of credentials. This means that users can authenticate once and gain access to resources across different domains or organizations without needing to log in separately for each service\cite{wilson2022}.
+
+Federation is typically implemented through some protocols such as SAML (Security Assertion Markup Language)\cite{wilson2022} or OpenID Connect\cite{richer2017}. They have standardize the exchange of authentication and authorization data between an Identity Provider (IdP), a trusted authority that holds user credentials, and a Service Provider (SP). 
+
+For example, a student may use their university credentials to access different online services provided by the university, such as email, learning management systems, video-conference applications, and library resources, without needing to possess separate accounts on each platform. Federation simplifies the user experience by reducing the number of credentials users need to memorize, while also enhancing security by centralizing authentication and access control.
+
+
+\subsubsection*{Summary}
+
+To summarize, authentication care about the identity of the user ("Who you are?"), while authorization focus on the permissions and access rights ("What you can do?"), and federation is about enabling seamless access across different services ("How can your identity be trusted across different systems?"). These concepts are deeply interrelated: a system may handle authorization without authentication (OAuth 2.0), authentication without federation, or combine all three within a unified framework (OpenID Connect, SAML). The way each of the three protocols OAuth 2.0, OIDC, and SAML handles these three dimensions largely determines their respective strengths, weaknesses, and domains of applicability in an enterprise context.
+
+A useful analogy to understand this relationship is to think of a key (authentication) that grants entry to a building, where different rooms may have different access levels (authorization). Federation acts as a master key that grants access to multiple buildings (applications or services). 
+
+\subsection{Tokens, assertion, and session} \label{sous_sec_deux}
+
+In the context of identity and access management protocols, tokens, assertions, and sessions are fundamental concepts by which authentication and authorization are achieved and maintained. While these terms are sometimes used interchangeably, they represent distinct mechanisms, each with specific characteristics depending on the protocol in use.
+
+\subsubsection*{Tokens}
+
+A token a piece of data that represents a credential about a user, system or an authorization grant. Tokens serve as portable proof that can be presented to access protected resources without requiring the user to reauthenticate each time. As Richer and Sanso observe: "OAuth 2.0 is ultimately about tokens"\cite{richer2017}. A principle that extends beyond OAuth 2.0 to encompass OIDC and in a broader sense, SAML. 
+Tokens can take various forms depending on the protocol and use case:
+\begin{itemize}
+    \item \textbf{JSON Web Tokens (JWT):} These tokens are compact, self-contained, meaning they carry all necessary information within the token itself, for stateless validation. They are the standard format for OIDC ID Tokens and increasingly used for OAuth 2.0 access tokens.
+    \item \textbf{Opaque Tokens:} These tokens do not contain any information that can be directly interpreted by the client. They serve as references to server-side stored information. They require the recipient to query the server emitter (via token introspection, RFC 7662) to retrieve associated metadata. Opaque tokens offer better revocation control but at the cost of additional round-trips to the server for validation.
+    \item \textbf{SAML Assertions:} XML-based statements that contain structured information about the user's identity and privileges. While not commonly referred to as "token" in SAML terminology, assertions functionally serve the same purpose: they are signed to ensure integrity and authenticity, and are issued by the IdP and consumed by the SP to make access control decisions.
+\end{itemize}
+
+The fundamental distinction between these formats lies not in their purpose, but in their structure (XML vs JSON), size(the maximum supported size for SAML response is $128KB$ \cite{awsSaml}, while JWT can be much smaller $\approx 1KB$ usually), and validation mechanism (XML signatures for SAML assertions vs cryptographic signatures for JWTs). 
+
+In OAuth 2.0 and OIDC, multiple token types coexist within a single flow:
+\begin{itemize}
+    \item \textbf{Access Tokens:} These tokens are used to access protected resources. They are short-lived and may be opaque or JWTs, depending on the implementation. For example, they are  used by a ressource server to deliver ressource if they are valid.
+    \item \textbf{Refresh Tokens:} These tokens are used to obtain new access tokens without requiring the user to re-authenticate. They are long-lived and must be securely stored by the client. They enable "silent authentification" \cite{wilson2022}. For example, they are used by an autorization server to deliver an access token if they are valid.
+    \item \textbf{ID Tokens:} Specific to OIDC, these tokens contain information about the authenticated user and are always formatted as JWTs. They are consumed by the client application to establish a session or personalize the user experience.
+\end{itemize}
+
+In SAML, the assertion itself acts as both identity proof and authorisation credential, consolidationg these roles into a single XML structure.
+
+\subsubsection*{Assertions}
+
+An assertion is a formal statement made by a trusted authority (IdP) about a subject (user or system). In the SAML protocol, assertions are the primary mechanism for transmitting authentication and authorisation information between the IdP and SP.
+
+A SAML assertion is always digitally signed (using XML Signature) to ensure integrity and authenticity, and may optionally be encrypted for confidentiality. It contains field like (subject, authentication statement, attribute statement, conditions) that provide detailed information about the authentication event and the user's attributes. The assertion is issued by the IdP after successful authentication and is consumed by the SP to make access control decisions.
+
+% TODO rewrite this part
+\subsubsection*{Sessions}
+
+A session represents a temporary, stateful interaction between a user and a system. Sessions are critical for maintaining context across multiple requests without requiring repeated authentification, thereby improving user experience while managing security trade-offs. It can be managed by the application itself (application-level session) or by the identity provider (IdP/OP session) in the context of federated authentication.
+
+Moreover, session lifetimes vary significantly depending on the sensitivity of the application. For example, for an online banking application, it may last only few minutes, with mandatory re-authentification after inactivity. And for standard web applications, it lasts for hours or even days balancing depending on the develloper needs. 
+
+Beside that, proper session termination is critical for security. In SAML, the IdP can initiate Single Logout (SLO) to terminate sessions across all SPs sharing the same IdP session. Sometimes, it can also be a disablement of an user account at the IdP level by an administrator and the SP will be notified at the next authentication attempt\cite{wilson2022}. For example, when a student graduates or leaves the university, their account is disabled. In OIDC, it exists different flow to handle session termination: the Relying Party (RP) Initiated Logout flow\footnote{It occurs when a logout request originates from a RP than the IP}, Front Channel Logout\footnote{It uses the user's browser to propagate logout requests to all relying parties}, and Back Channel Logout\footnote{It uses direct server-to-server communication between the identity provider and each relying party} \cite{ibmOauth2}. In OAuth 2.0, since it is primarily an authorisation protocol, session management is typically handled at the application level with token revocation(RFC 7009) mechanisms to invalidate sessions. This can lead to security risks if not properly implemented, as tokens may remain valid even after a user has logged out.
+
+\subsubsection*{Comparative summary}
+\begin{center}
+  \begin{tabularx}{\textwidth}
+   {
+    | >{\raggedright\arraybackslash} X
+    || >{\raggedright\arraybackslash} X
+    | >{\raggedright\arraybackslash} X
+    | >{\raggedright\arraybackslash} X
+    |
+   }
+    \hline
+      \textbf{Concept} & \textbf{SAML} & \textbf{OpenID Connect} & \textbf{OAuth 2.0} \\
+    \hline
+      \textbf{Token/Assertion} & SAML Assertion & JSON Web Token (JWT) & Access, Refresh Tokens \\
+    \hline
+      \textbf{Token LifeTime} & Short(minutes) & Access: short, ID: short, Refresh: long & Access: short, Refresh: long \\
+    \hline
+      \textbf{Session Management} & Native(SSO, SLO) & Native(RP-initiated Logout,Front/Back Channel Logout) & None(delegated to application) \\
+    \hline
+      \textbf{Signature Mechanism} & XML signature & JWT signature & JWT signature \\
+    \hline 
+  \end{tabularx}
+\end{center}
+
+While OIDC and OAuth 2.0 does not differ enough in the token format, lifetime or signature mechanism, SAML differ in all these aspects. 
+
+\section{Trust model} \label{sec_deux}
+
+\subsection{OAuth 2.0}
+
+OAuth 2.0 is an autorization mechanism and it is not an authentification protocol. It is designed to allow third-party applications to access resources on behalf of a user without sharing the user's credentials. The trust model of OAuth 2.0 is based on the delegation of access rights from the resource owner to the client application, mediated by an authorization server. 
+
+So, OAuth 2.0 protocol require four main actors:
+\begin{itemize}
+  \item Authorization server (AS):  is the critical server for OAuth. It authorizes and gives grant to the client. 
+  \item Client application (CA): is the application which wants to act on behalf of a resource owner.
+  \item Resource owner(RO): is the owner of the resource, usually the user who want to access his data stored elsewhere than the application he is using
+  \item Resource server(RS): is a protected server which stored sensitive data of users 
+\end{itemize}
+
+The trust in OAuth 2.0 is established through the use of access tokens, which are issued by the AS to the CA after the RO grants permission via their authentication on the AS platform. The access token is issues to the CA after the AS verify the identity of the CA via its client secret. The AS stores it as it was shared when the CA registered in the AS. The CA can then use the access token to access protected resources on behalf of the resource owner. However, since OAuth 2.0 does not specify a standard mechanism for authentication, it relies on the authorization server to implement its own authentication methods\cite[p.~11]{richer2017}. The RO just have to verified if the token is valid and if the scope of the token is sufficient to access the requested resource. 
+
+\subsection{OIDC}
+
+OIDC has been built on top of the OAuth 2.0 protocol to circumvent one fundamentals problem of OAuth 2.0: Inability to authenticate with a standard mechanism. It is an authentication protocol with an authorization layer. It is designed to provide a simple and standardized way for client applications to authenticate users and obtain identity information, while also leveraging the existing OAuth 2.0 framework for authorization. All this is achieved without requiring the client application to manage user credentials directly, resulting in security and user experience increments.
+
+There are three actors in OIDC protocol:
+\begin{itemize}
+  \item OpenID Provider (OP): is the critical server for OIDC. It authenticicates the user and issues ID tokens and access tokens to the client application. It is responsible for managing user identities and credentials, and for enforcing security policies related to authentication and token issuance.
+  \item Relying Party (RP): is the client application that relies on the OP to authenticate users and provide identity information. The RP initiates the authentication process by redirecting the user to the OP, and then receives and processes the ID token and access token issued by the OP.
+  \item User: is the resource owner who wants to access the services provided by the RP. The user interacts with the OP to authenticate and grant consent for the RP to access their identity information and protected resources.
+\end{itemize}
+
+The trust is not just implied, it is verified through crypto graphical enforcement. The OP and RP establish trust through the exchange of metadata such as location and endpoint URLs via the endpoint \texttt{/.well-known/openid-configuration}\cite[p.~251]{richer2017} . The use of ID tokens, which are signed by the OP, allows the RP to verify the authenticity of the token and ensure that it has not been altered. Additionally, the RP have to register itself to the OP to obtain a client ID and secret. This ensure that the OP is sending the token to a trusted and verified RP. However, the RP can also authenticated using a signed JWT assertion, which is a more secure method than using a client secret, as it does not require the RP to store sensitive information that could be compromised\cite[p.~252]{richer2017}. 
+
+
+\subsection{SAML}
+
+SAML is a framework based on extensible markup language (XML) and is designed to enable single sign-on (SSO) and federated identity management across different domains\cite[p.~127]{wilson2022}. It is widely used in enterprise environments to facilitate secure access to web applications or service. 
+
+There are three main actors in SAML protocol:
+\begin{itemize}
+  \item Identity Provider (IdP): is the critical server for SAML. It is responsible for authenticating users and issuing SAML assertions that contain information about the user's identity and privileges. The IdP manages user credentials and enforces security policies related to authentication and assertion issuance.
+  \item Service Provider (SP): is the application or service that relies on the IdP to authenticate users and provide identity information. The SP initiates the authentication process by redirecting the user to the IdP, and then receives and processes the SAML assertion issued by the IdP to grant access to the requested resource.
+  \item User: is the resource owner who wants to access the services provided by the SP. The user interacts with the IdP to authenticate and grant consent for the SP to access their identity information and protected resources. 
+\end{itemize}
+
+The establishment of trust between the IdP and SP is made via the exchange of metadata and the use of digital signatures in the SAML assertions. The IdP and SP exchange metadata that includes information about their endpoints, supported protocols, and public keys for signature verification. When the IdP issues a SAML assertion, it is digitally signed using XML Signature to ensure its integrity and authenticity. The SP can then verify the signature using the public key provided in the metadata to confirm that the assertion was issued by a trusted IdP and has not been altered. This trust model allows for secure communication between the IdP and SP, enabling users to access resources across different domains without needing to manage multiple sets of credentials\cite[p.~129]{wilson2022}.
+
+
+\section{Three protocols positioning}
+
+It is important to note that the three protocols are not just three different ways to achieve the same goal, but they were build one after another to solve different problems. 
+
+\subsection{SAML}
+
+SAML is an older protocol than OAuth 2.0 and OIDC\cite[p.~139]{wilson2022}. It has been built in years 2000s and has been adopted by many enterprises as the management of their employees credentials was centralized; which make the switch to newer protocols like OIDC and OAuth 2.0 more difficult. 
+
+Despite SAML handles both authorization and authentication, it is more focused on the latter, and it is not designed to handle modern applications architectures such as mobile applications, single-page applications (SPA), and microservices. 
+
+
+\subsection{OAuth 2.0 and OpenID Connect relationship}
+
+OAuth 2.0 and OIDC are related, as OIDC is built on top of the OAuth 2.0 framework. OIDC extends OAuth 2.0 by adding an authentication layer when OAuth 2.0 is focused on authorization. This relationship allows organizations to benefit of authentication and authorization capabilities within a single protocol, while also leveraging the existing OAuth 2.0 infrastructure.
+
+\section{Scope and limitation of the study}
+
+
+\end{document}
+
+
+
