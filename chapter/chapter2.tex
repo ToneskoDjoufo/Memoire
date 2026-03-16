@@ -5,7 +5,7 @@
 
 \section{Architectures and authentication/authorization flows}
 
-SAML, OAuth 2.0 and OIDC has different architectures and authentication/authorization flows. 
+SAML, OAuth 2.0 and OIDC has different architectures and authentication/authorization flows. In the following sections, we will describe the different flows of each protocol and compare them in a synthetic table at the end of this section. 
 
 \subsection{SAML}
 
@@ -36,7 +36,7 @@ SAML is built such that every message between the SP and IdP transits via the us
 
 OAuth 2.0 has different flows depending on the type of client application and the level of security required.
 
-Unlike OAuth 1.0, OAuth 2.0 does not specify a single flow to treat all use cases, but rather defines several flows, each designed for specific scenarios.
+Unlike OAuth 1.0, OAuth 2.0 does not specify a single flow to treat all use cases, but rather defines several flows, each designed for specific scenarios\cite[p~93]{richer2017}.
 
 
 \subsubsection*{Implicit Flow}
@@ -44,6 +44,19 @@ Unlike OAuth 1.0, OAuth 2.0 does not specify a single flow to treat all use case
 This flow is designed for client applications that run entirely within a browser, such as Single-Page Applications (SPAs). Since any secret stored directly in JavaScript code would be accessible to everyone, the access ttoken is returned directly to the client without an intermediate authorization code exchange. This approach removes the security protections associated with non-repudiation. Furthermore, refresh tokens are not issued in this flow, as these applications are generally used for short-lived access and lack the infrastructure to securely store long-term credentials.
 
 \subsubsection*{Client Credentials Flow}
+
+This flow is intended for server-to-server communication, where the client application is a confidential client (dark, and secure backend server) that can securely store its credentials. In this flow, the client application directly authenticates with the authorization server using its own credentials (client ID and client secret) to obtain an access token. Since the client can request the token whenever he wants by just providing his credentials, the refresh token is no longer needed. This flow does not involve user authentication, as it is designed for scenarios where the client application needs the access in the resource server on behalf of itself rather than on behalf of a user.
+
+
+\subsubsection*{Resource Owner Credentials Flow}
+
+This flow is used when it exists no other viable solution than this. In this flow, the user provides their credentials (username and password) directly to the client application, which then uses these credentials to obtain an access token from the authorization server in the back channel. So, the refresh token is not needed in this flow as the client can request the token whenever he wants by just providing the user credentials in HTTP POST request. Furthermore, the resource server does not have to see the user credentials. However, it is generally discouraged due to security concerns, as it requires users to share their credentials with the client application, which can lead to potential security risks if the client application is compromised.
+
+\subsubsection*{Assertion Grant Types}
+
+
+
+
 
 \begin{comment}
   2.1. Architecture et flux d'authentification/autorisation
