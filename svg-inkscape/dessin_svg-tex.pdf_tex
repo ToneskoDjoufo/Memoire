@@ -1,0 +1,94 @@
+%% Creator: Inkscape 1.4 (e7c3feb1, 2024-10-09), www.inkscape.org
+%% PDF/EPS/PS + LaTeX output extension by Johan Engelen, 2010
+%% Accompanies image file 'dessin_svg-tex.pdf' (pdf, eps, ps)
+%%
+%% To include the image in your LaTeX document, write
+%%   \input{<filename>.pdf_tex}
+%%  instead of
+%%   \includegraphics{<filename>.pdf}
+%% To scale the image, write
+%%   \def\svgwidth{<desired width>}
+%%   \input{<filename>.pdf_tex}
+%%  instead of
+%%   \includegraphics[width=<desired width>]{<filename>.pdf}
+%%
+%% Images with a different path to the parent latex file can
+%% be accessed with the `import' package (which may need to be
+%% installed) using
+%%   \usepackage{import}
+%% in the preamble, and then including the image with
+%%   \import{<path to file>}{<filename>.pdf_tex}
+%% Alternatively, one can specify
+%%   \graphicspath{{<path to file>/}}
+%% 
+%% For more information, please see info/svg-inkscape on CTAN:
+%%   http://tug.ctan.org/tex-archive/info/svg-inkscape
+%%
+\begingroup%
+  \makeatletter%
+  \providecommand\color[2][]{%
+    \errmessage{(Inkscape) Color is used for the text in Inkscape, but the package 'color.sty' is not loaded}%
+    \renewcommand\color[2][]{}%
+  }%
+  \providecommand\transparent[1]{%
+    \errmessage{(Inkscape) Transparency is used (non-zero) for the text in Inkscape, but the package 'transparent.sty' is not loaded}%
+    \renewcommand\transparent[1]{}%
+  }%
+  \providecommand\rotatebox[2]{#2}%
+  \newcommand*\fsize{\dimexpr\f@size pt\relax}%
+  \newcommand*\lineheight[1]{\fontsize{\fsize}{#1\fsize}\selectfont}%
+  \ifx\svgwidth\undefined%
+    \setlength{\unitlength}{365.99987601bp}%
+    \ifx\svgscale\undefined%
+      \relax%
+    \else%
+      \setlength{\unitlength}{\unitlength * \real{\svgscale}}%
+    \fi%
+  \else%
+    \setlength{\unitlength}{\svgwidth}%
+  \fi%
+  \global\let\svgwidth\undefined%
+  \global\let\svgscale\undefined%
+  \makeatother%
+  \begin{picture}(1,0.62550842)%
+    \lineheight{1}%
+    \setlength\tabcolsep{0pt}%
+    \put(0,0){\includegraphics[width=\unitlength,page=1]{dessin_svg-tex.pdf}}%
+    \put(0.02494209,0.56673437){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Is the client acting on behalf of a resource owner?\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=2]{dessin_svg-tex.pdf}}%
+    \put(0.57795074,0.56673437){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Is the client running completely inside of a web browser?\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=3]{dessin_svg-tex.pdf}}%
+    \put(0.57685785,0.24831816){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Is the client a native application?\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=4]{dessin_svg-tex.pdf}}%
+    \put(0.20099022,0.57631854){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\textbf{Yes}\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=5]{dessin_svg-tex.pdf}}%
+    \put(0.29371294,0.35884387){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\textbf{Yes}\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=6]{dessin_svg-tex.pdf}}%
+    \put(0.75791254,0.26153401){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\textbf{Yes}\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=7]{dessin_svg-tex.pdf}}%
+    \put(0.20107301,0.19703946){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\textbf{Yes}\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=8]{dessin_svg-tex.pdf}}%
+    \put(0.20142248,0.06093286){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\textbf{Yes}\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=9]{dessin_svg-tex.pdf}}%
+    \put(0.50022667,0.57631854){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\textbf{Yes}\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=10]{dessin_svg-tex.pdf}}%
+    \put(0.76498358,0.57631854){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\textbf{Yes}\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=11]{dessin_svg-tex.pdf}}%
+    \put(0.05164292,0.48149309){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\textbf{No}\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=12]{dessin_svg-tex.pdf}}%
+    \put(0.05164292,0.12692741){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\textbf{No}\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=13]{dessin_svg-tex.pdf}}%
+    \put(0.60921304,0.48149309){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\textbf{No}\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=14]{dessin_svg-tex.pdf}}%
+    \put(0.29996157,0.48149309){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\textbf{No}\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=15]{dessin_svg-tex.pdf}}%
+    \put(0.28208998,0.56722263){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Can the resource owner interact with a web browser while using the client?\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=16]{dessin_svg-tex.pdf}}%
+    \put(0.29221294,0.4386204){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Does the user have a simple set of credentials like a password?\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=17]{dessin_svg-tex.pdf}}%
+    \put(0.02494209,0.18140556){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Is the client acting on its own behalf?\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=18]{dessin_svg-tex.pdf}}%
+    \put(0.02494209,0.05738093){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Is the client acting on the authority of a trusted third party?\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=19]{dessin_svg-tex.pdf}}%
+  \end{picture}%
+\endgroup%

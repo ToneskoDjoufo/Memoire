@@ -38,6 +38,29 @@ OAuth 2.0 has different flows depending on the type of client application and th
 
 Unlike OAuth 1.0, OAuth 2.0 does not specify a single flow to treat all use cases, but rather defines several flows, each designed for specific scenarios\cite[p~93]{richer2017}.
 
+\subsubsection*{Authorization Code Flow}
+
+This is the commonest flow used for web applications and mobile applications. In this flow, the client application(CA) want to act on behalf of the user to access protected resources stored at the resource server (RS). So, the CA redirects the user to the AS to authenticate and authorize the CA to access the user's resources. After successful authentication and authorization, the authorization server returns an authorization code to the CA, which then exchanges it for an access token by authenticating itself to the AS and presenting the authorization code. This flow provides a high level of security as the access token is never exposed to the user agent and is only transmitted between CA and AS through secure back-channel communication and CA never see the user credentials. Additionally, refresh tokens are issued in this flow to allow long-term access without requiring the user to reauthenticate. Each step of this flow is designed in Figure\ref{oauth_code_grant}.
+
+\begin{figure}[htp]
+  \centering
+  \includesvg[width=0.9\textwidth, inkscapelatex=false]{../img/oauth_code_grant}
+  \caption{OAuth 2.0 Authorization Code Grant Flow \cite[p.~23]{richer2017}}
+  \label{oauth_code_grant}
+\end{figure}
+
+\subsubsection*{Authorization Code Flow with Proof Key Code Exchange (PKCE)}
+
+This flow is an extension of the Authorization Code Flow and it was designed to add an additional layer of security. In this flow, the CA generates a random string called a "code verifier" and derives a "code challenge" from it by using a transformation method (e.g., SHA-256). When the CA initiates the authorization request via the front channel, it includes the code challenge in it. After the user authenticates and authorizes the CA, the AS returns an authorization code to the CA. The CA then authenticates itself and exchanges the authorization code and the original code verifier for an access token. The AS compares the code verifier with the code challenge by applying the same transformation method to the code verifier and checking if it matches the code challenge. If they match, the AS issues an access token. A refresh token is also issued in this flow to allow long-term access without requiring the user to reauthenticate. The Figure \ref{pkce_flow} illustrates the steps of this flow.
+
+\begin{figure}[htp]
+  \centering
+  \includesvg[width=0.9\textwidth, inkscapelatex=false]{../img/pkce_flow}
+  \caption{Authorization Code Grant with PKCE Flow \cite[p.~177]{richer2017}}
+  \label{pkce_flow}
+\end{figure}
+
+
 
 \subsubsection*{Implicit Flow}
 
@@ -54,7 +77,21 @@ This flow is used when it exists no other viable solution than this. In this flo
 
 \subsubsection*{Assertion Grant Types}
 
+In this flow, the client application can obtain an access token by presenting an assertion to the authorization server. The assertion can be handed in different formats, such as SAML assertions or JSON Web Tokens (JWTs). The client application can obtain the assertion from an external identity provider or generate it itself or through another non-OAuth protocol. Furthermore, the client uses his credentials (client ID and client secret) and the assertion to authenticate with the authorization server and request an access token. And, based on the assertion, the right scope of access is determined by the authorization server. Since it rely on the back channel communication between the client and the authorization server, and a user is not involved in this flow, the refresh token is not required.
 
+\subsubsection*{Summary}
+
+According to the authors, when implementing OAuth 2.0, the choice of the flow should be based on the Figure \ref{oauth_flow_choice}. 
+
+\begin{figure}[htp]
+  \centering
+  \includesvg[width=\textwidth, inkscapelatex=false]{../img/oauth_flow_choice}
+  %\includesvg[width=0.8\textwidth]{../img/}
+  \caption{Choosing the right grant type \cite[p~108]{richer2017}}
+  \label{oauth_flow_choice}
+\end{figure}
+
+\subsection{OIDC}
 
 
 
