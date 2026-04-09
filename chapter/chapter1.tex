@@ -48,7 +48,7 @@ A token a piece of data that represents a credential about a user, system or an 
 Tokens can take various forms depending on the protocol and use case:
 \begin{itemize}
     \item \textbf{JSON Web Tokens (JWT):} These tokens are compact, self-contained, meaning they carry all necessary information within the token itself, for stateless validation. They are the standard format for OIDC ID Tokens and increasingly used for OAuth 2.0 access tokens.
-    \item \textbf{Opaque Tokens:} These tokens do not contain any information that can be directly interpreted by the client. They serve as references to server-side stored information. They require the recipient to query the server emitter (via token introspection, RFC 7662) to retrieve associated metadata. Opaque tokens offer better revocation control but at the cost of additional round-trips to the server for validation.
+    %\item \textbf{Opaque Tokens:} These tokens do not contain any information that can be directly interpreted by the client. They serve as references to server-side stored information. They require the recipient to query the server emitter (via token introspection, RFC 7662) to retrieve associated metadata. Opaque tokens offer better revocation control but at the cost of additional round-trips to the server for validation.
     \item \textbf{SAML Assertions:} XML-based statements that contain structured information about the user's identity and privileges. While not commonly referred to as "token" in SAML terminology, assertions functionally serve the same purpose: they are signed to ensure integrity and authenticity, and are issued by the IdP and consumed by the SP to make access control decisions.
 \end{itemize}
 
