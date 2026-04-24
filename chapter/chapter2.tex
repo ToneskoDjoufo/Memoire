@@ -5,22 +5,28 @@
 
 \section{Architectures and authentication/authorization flows}
 
-SAML, OAuth 2.0 and OIDC has different architectures and authentication/authorization flows. In the following sections, we will describe the different flows of each protocol and compare them in a synthetic table at the end of this section. 
+SAML, OAuth 2.0 and OIDC implement different approaches to authentication and authorization flows, reflecting their distinct design philosophies. This section covers the architectural patterns and flow differences of each protocol, before providing a synthetic comparison of their strengths and weaknesses.
 
-\subsection{SAML}
+\subsection{SAML: Simplicity through standardization}
 
-SAML is designed on a client-server architecture. It has two flows: SP-initiated and IdP-initiated.
+SAML is designed on a client-server architecture which communicates via the user's browser. Unlike OAuth 2.0, which defines multiple flows for different scenarios, SAML standardizes on two main flows: SP-initiated and IdP-initiated. This simplicity in flow design reflects his primary goal which is to enable seamless authentication across multiple service providers using a single identity provider.
 
-A typical example of an SP-initiated flow occurs when a student at university wants to access his online student account, he is redirected to the university's IdP for authentication via his browser. Upon successful login, the IdP issues a SAML assertion via the student browser that is consumed by the SP to grant access to the requested resource. This process allows students to use a single set of credentials to access multiple services securely and transparently. This is called SP initiated flow (Figure \ref{saml_sp_initiated}), as the authentication process is initiated by the service provider when the user tries to access a protected resource.
+\subsubsection*{SP-initiated flow}
+
+The SP-initiated flow (Figure \ref{saml_sp_initiated}) is triggered when a user attempts to access a protected resource directly\cite[p.~130]{wilson2022}\cite{oasissaml}. For example, when a student navigates to their online student account. Since they is not authenticated yet, the SP redirects their browser to the university's IDP with a SAML \texttt{AuthnRequest}. Upon successfull authentication, the IdP issues a signed SAML assertion that is transmitted back to the SP via the student's browser. The SP consumes the assertion to grant access to the requested resource, but validate the assertion's signature before. 
 
 \begin{figure}[htp]
   \centering
-  \includegraphics[width=0.8\textwidth]{../img/SP-initiated-flow.png}
-  \caption{SP initiated flow} 
+  \includegraphics[width=0.8\textwidth]{../img/IdP-initiated flow.png}
+  \caption{IdP initiated flow \cite{wilson2022}}
   \label{saml_sp_initiated}
 \end{figure}
 
-Additionally, the IdP can be a corporate application of the university. If the student is connected to that corporate application and want to access his online student account, the student will not be asked to reauthenticate and will be automatically granted access to the requested resource. This is called IdP initiated flow (Figure \ref{saml_idp_initiated}), as the authentication process is initiated by the identity provider, rather than the service provider. In this flow, the user first authenticates with the IdP, and then the IdP initiates the SAML assertion to the SP to grant access to the requested resource.
+Note that the SP never sees the user's credentials. Authentication is fully delegated to the IdP, while the SP makes authorization decisions based on the information contained in the signed assertion.
+
+\subsubsection*{IdP-initiated flow}
+
+The IdP-initiated flow (Figure \ref{saml_idp_initiated}) starts at the IdP rather than the SP\cite[p.~131]{wilson2022}\cite{oasissaml}. For instance, if the student is already authenticated with a corporate application of the university, and then tries to access their online student account, they will not be prompted to reauthenticate. Instead, the IdP will automatically generate a SAML assertion and send it to the SP, granting access to the requested resource without requiring the user to go through a reauthentication. Additionally, this flow is useful for providing a seamless user experience across multiple applications within the same organization.
 
 \begin{figure}[htp]
   \centering
@@ -29,14 +35,24 @@ Additionally, the IdP can be a corporate application of the university. If the s
   \label{saml_idp_initiated}
 \end{figure}
 
-SAML is built such that every message between the SP and IdP transits via the user agent (browser). These SAML requests and responses are transmitted through binding mechanisms such as HTTP POST, typically used when the assertion is signed and voluminous, or HTTP Redirect, generally employed when the assertion are shorter and not signed \cite[p.~347]{wilson2022}. 
+\subsubsection*{SAML Architecture}
 
+Basically, SAML allow a number of use cases to be implemented by putting together the right building blocks components\cite{oasissaml}. The components allow to exchange of identity, attribute, authentication and authorization information among autonomous organizations and domains which have  trusted relationship.
 
-\subsection{OAuth 2.0}
+Additionnally, SAML messages are transmitted exclusively through the user agent (browser), never via direct server-to-server communication in standard flows. It possesses many bindings but the primary ones used are:
 
-While SAML implements two flows, OAuth 2.0 has additional flows depending on the type of client application and the level of security required.
+\begin{itemize}
+  \item HTTP Redirect Binding: Used for transmitting SAML messages from the SP to the IdP, such as the \texttt{AuthnRequest} or \texttt{LogoutRequest}. This binding is suitable for small messages due to URL length limitations\cite[p.~347]{wilson2022}.
+  \item HTTP POST Binding: Used for transmitting larger SAML messages. This binding allows for more secure transmission of sensitive information, as it can be sent within the base64-encoded content in the body of an HTTP form control rather than being exposed in the URL\cite[p.~347]{wilson2022}\cite{oasissaml}.
+\end{itemize}
+
+\subsection{OAuth 2.0: Flexibility through specialization}
+
+While SAML implements two standardized flows\cite{oasissaml}, OAuth 2.0 defines multiples flows\cite[p.~84]{siri2020} depending on the type of client application and the level of security required.
 
 Moreover, unlike OAuth 1.0, OAuth 2.0 does not specify a single flow to treat all use cases, but rather defines several flows, each designed for specific scenarios \cite[p.~93]{richer2017}.
+
+This choice reflects OAuth's focus on authorization rather than authentication. By providing different flows, different applications which have different security profiles and capabilities, can still rely on one protocol to implement their authorization needs. However, this flexibility can also lead to confusion and security risks if the wrong flow is chosen for a given scenario, or if the flows are not implemented correctly.
 
 \subsubsection*{Authorization Code Flow}
 
@@ -62,33 +78,42 @@ This flow is an extension of the Authorization Code Flow and it was designed to 
 
 \subsubsection*{Implicit Flow}
 
-This flow is designed for client applications that run entirely within a browser, such as Single-Page Applications (SPAs). Since any secret stored directly in JavaScript code would be accessible to everyone, the access ttoken is returned directly to the client without an intermediate authorization code exchange. This approach removes the security protections associated with non-repudiation. Furthermore, refresh tokens are not issued in this flow, as these applications are generally used for short-lived access and lack the infrastructure to securely store long-term credentials. This is dangerous and it has been removed in the latest version of OAuth 2.1 \cite[p.~116]{wilson2022}\cite{rfc9700}.
+This flow is designed for client applications that run entirely within a browser, such as Single-Page Applications (SPAs). Since any secret stored directly in JavaScript code would be accessible to everyone, the access token is returned directly to the client without an intermediate authorization code exchange. This approach removes the security protections associated with non-repudiation. Furthermore, refresh tokens are not issued in this flow, as these applications are generally used for short-lived access and lack the infrastructure to securely store long-term credentials. This is dangerous and it has been removed in the latest version of OAuth 2.1 \cite[p.~116]{wilson2022}\cite{rfc9700}.
 
 \subsubsection*{Client Credentials Flow}
 
-This flow is intended for server-to-server communication, where the client application is a confidential client (dark, and secure backend server) that can securely store its credentials. In this flow, the client application directly authenticates with the authorization server using its own credentials (client ID and client secret) to obtain an access token. Since the client can request the token whenever he wants by just providing his credentials, the refresh token is no longer needed. This flow does not involve user authentication, as it is designed for scenarios where the client application needs the access in the resource server on behalf of itself rather than on behalf of a user.
+This flow is intended for server-to-server communication, where the client application is a confidential client (confidential, and secure backend server) that can securely store its credentials. In this flow, the client application directly authenticates with the authorization server using its own credentials (client ID and client secret) to obtain an access token. Since the client can request the token whenever he wants by just providing his credentials, the refresh token is no longer needed. This flow does not involve user authentication, as it is designed for scenarios where the client application needs the access in the resource server on behalf of itself rather than on behalf of a user.
 
 
 \subsubsection*{Resource Owner Credentials Flow}
 
-This flow is used when it exists no other viable solution than this. In this flow, the user provides their credentials (username and password) directly to the client application, which then uses these credentials to obtain an access token from the authorization server in the back channel. So, the refresh token is not needed in this flow as the client can request the token whenever he wants by just providing the user credentials in HTTP POST request. Furthermore, the resource server does not have to see the user credentials. However, it is generally discouraged due to security concerns, as it requires users to share their credentials with the client application, which can lead to potential security risks if the client application is compromised.
+This flow is used when it exists no other viable solution than this. In this flow, the user provides their credentials (username and password) directly to the client application, which then uses these credentials to obtain an access token from the authorization server in the back channel. So, the refresh token is not needed in this flow as the client can request the token whenever he wants by just providing the user credentials in HTTP POST request. However, it is generally discouraged due to security concerns, as it requires users to share their credentials with the client application, which can lead to potential security risks if the client application is compromised\cite{rfc9700}.
 
 \subsubsection*{Assertion Grant Types}
 
-In this flow, the client application can obtain an access token by presenting an assertion to the authorization server. The assertion can be handed in different formats, such as SAML assertions or JSON Web Tokens (JWTs). The client application can obtain the assertion from an external identity provider or generate it itself or through another non-OAuth protocol. Furthermore, the client uses his credentials (client ID and client secret) and the assertion to authenticate with the authorization server and request an access token. And, based on the assertion, the right scope of access is determined by the authorization server. Since it rely on the back channel communication between the client and the authorization server, and a user is not involved in this flow, the refresh token is not required.
+In this flow, the client application can obtain an access token by presenting an assertion to the authorization server. The assertion can be handed by the AS in different formats, such as SAML assertions or JSON Web Tokens (JWTs). The CA can obtain the assertion from an external identity provider (e.g. through another non-OAuth protocol). Furthermore, the CA uses his credentials (client ID and client secret) and the assertion to request the access token from the AS. And, based on the assertion, the right scope of access is determined by the AS. But, the AS validate the assertion signature before issuing the access token.  
 
+This flow enables integration between OAuth and non-OAuth systems. It can be used in an enterprise scenario where a SAML authenticated user needs to access an OAuth protected resource without having to reauthenticate. Or, in a scenario where a client application needs to obtain an access token on behalf of a user that has already authenticated with an external identity provider. 
 
 \subsubsection*{Device Authorization Flow}
 
-This flow is designed for devices that do not have a browser or have limited input capabilities, such as smart TVs, gaming consoles, or IoT devices\cite{rfc8628}. In this flow, the device initiates the authorization process by requesting a device code and a user code from the authorization server. The device then displays the user code to the user and instructs them to visit a specific URL on another device (e.g., a smartphone or computer) to enter the user code and authenticate. Once the user successfully authenticates and authorizes the device, the authorization server issues an access token to the device in response to the polling requests repeatedly send by the device on the waiting period. Since the device can request the token whenever he wants by just providing the user code, the refresh token is not needed in this flow.
+This flow is designed for devices that do not have a browser or have limited input capabilities, such as smart TVs, gaming consoles, or IoT devices\cite{rfc8628}. In this flow, the device initiates the authorization process by requesting a device code and a user code from the authorization server. The device then displays the user code to the user and instructs them to visit a specific URL on another device (e.g., a smartphone or computer) to enter the user code and authenticate. Once the user successfully authenticates and authorizes the device, the AS issues an access token to the device in response to the polling requests repeatedly send by the device by the waiting period. Since the device can request the token whenever he wants by just providing the user code, the refresh token is not needed in this flow.
 
-\subsection{OIDC}
+\subsection{OIDC: Authentication layer on top of OAuth 2.0}
 
-Since OIDC is built on top of OAuth 2.0, it consequently inherits all its flows. However, OIDC is designed to provide an authentication layer, so it independently override some flows to integrate the authentication requirements. These flows are: the Authorization Code Flow, the Implicit Flow, and the Hybrid Flow \cite[p.~109]{wilson2022}\cite[p.~5]{yildiz2026}, the Client-Initiated Backchannel Authentication Flow (CIBA) \cite{wilson2022}\cite{ciba}.
+Since OIDC is built on top of OAuth 2.0, it consequently inherits all its flows. However, OIDC is designed to provide an authentication layer, so it independently override some flows to integrate the authentication requirements. The key distinction is the introduction of the ID Token. These flows are: the Authorization Code Flow, the Implicit Flow, and the Hybrid Flow \cite[p.~109]{wilson2022}, the Client-Initiated Backchannel Authentication Flow (CIBA) \cite[p.~123]{wilson2022}\cite{ciba}. 
 
 \subsubsection*{Authorization Code Flow}
 
-This flow works similarly to the OAuth 2.0 Authorization Code Flow, but with the addition of an ID token that is returned by the OP (AS) along with the access token. Consequently, it also works for the authorization code flow with PKCE. 
+This flow works similarly to the OAuth 2.0 Authorization Code Flow, but with critical additions\cite{oidc_core}\cite[p.~110]{wilson2022}.:
+
+\begin{itemize}
+  \item The client application can request an ID Token in addition to the access token by including the "\texttt{openid}" scope in the authorization request. This allows the client to obtain information about the authenticated user, such as their unique identifier, name, email, and other profile information.
+  \item The authorization server must include an ID Token in the response when the "\texttt{openid}" scope is requested. 
+  \item The ID Token is validated with its signature, issuer, audience, expiration and nonce by the RP (client)\cite[p.~152]{wilson2022}. This validation process ensures that the ID Token is authentic and has not been tampered with, and that it was issued for the intended audience (CA).
+\end{itemize}
+
+PKCE is fully supported.
 
 \subsubsection*{Implicit Flow}
 
@@ -106,26 +131,462 @@ This flow is designed for scenarios where the client application cannot directly
 
 In this flow, the client application initiates the authentication process by sending an authentication request to the OP through a back channel communication. The OP then prompts the user to authenticate using a separate device, such as a smartphone or computer. Once the user successfully authenticates, the OP sends an authentication response to the client application through the back channel, which includes an ID token and optionally an access token. This flow allows for secure authentication without requiring direct user interaction with the client application.
 
-\subsection{Flows decision graph}
+\subsection{Flows selection decision graph}
 
-\begin{comment}
-\subsubsection*{Flow decision graph}
+Based on the different flows described above, when implementing SAML, OAuth 2.0 or OIDC, the choice of the flow can be based on the decision graph. 
 
-Considering these flows, when implementing OAuth 2.0, the choice of the flow should be based on the Figure \ref{oauth_flow_choice}. 
+\begin{figure}[htbp]
+\centering
+\resizebox{\textwidth}{!}{
+\begin{tikzpicture}[
+  % Configuration globale
+  scale= 0.65,
+  transform shape,
+  grow=down,
+  level distance=2.5cm,
+  sibling distance=1cm,
+  edge from parent/.style={draw, -Stealth, thick},
+  % Styles des nœuds
+  every node/.style={
+    font=\small,
+    align=center
+  },
+  decision/.style={
+    rectangle,
+    draw=black,
+    thick,
+    fill=gray!20,
+    text width=3cm,
+    minimum height=1cm,
+    rounded corners=2pt
+  },
+  protocol/.style={
+    rectangle,
+    draw=blue!70,
+    thick,
+    fill=blue!10,
+    text width=2.8cm,
+    minimum height=0.8cm,
+    rounded corners=2pt
+  },
+  flow/.style={
+    ellipse,
+    draw=green!70!black,
+    thick,
+    fill=green!10,
+    text width=1.5cm,
+    minimum height=0.7cm
+  },
+  flow-dep/.style={
+    ellipse,
+    draw=red!70,
+    thick,
+    fill=red!10,
+    text width=1.5cm,
+    minimum height=0.7cm
+  },
+  % Styles des edges
+  %edge from parent/.style={sloped},
+  edge-yes/.style={edge from parent/.append style={solid}},
+  edge-no/.style={edge from parent/.append style={solid}},
+  edge-deprecated/.style={edge from parent/.append style={dashed}},
+  % Distance entre niveaux
+  level 1/.style={sibling distance=11cm, level distance=2cm},
+  level 2/.style={sibling distance=7.5cm, level distance=2.2cm},
+  level 3/.style={sibling distance=3.6cm, level distance=2cm},
+  level 4/.style={sibling distance=3.22cm, level distance=2.2cm},
+  level 5/.style={sibling distance=3.5cm, level distance=1.8cm}
+]
 
-\begin{figure}[htp]
+% ============ ARBRE PRINCIPAL ============
+\node[decision] {\textbf{What is your\\primary need?}}
+  % BRANCHE GAUCHE : Identity Federation (SAML)
+  child {
+    node[protocol] {\textbf{SAML}}
+    child {
+      node[decision] {\textbf{Who initiates\\the flow?}}
+      child {
+        node[flow] {\textbf{SP-Initiated}\\Flow}
+        edge from parent node[left, font=\tiny, text width=1.5cm] {User at SP}
+      }
+      child {
+        node[flow] {\textbf{IdP-Initiated}\\Flow}
+        edge from parent node[right, font=\tiny, text width=1.5cm] {User at IdP}
+      }
+    }
+    edge from parent node[left, sloped, above, font=\tiny] {Identity Federation}
+  }
+  % BRANCHE DROITE : API Authorization (OAuth/OIDC)
+  child {
+    node[decision] {\textbf{Need user\\authentication?}}
+    % SOUS-BRANCHE : OIDC (YES)
+    child {
+      node[protocol, xshift=-1cm, yshift=0cm] {\textbf{OpenID\\Connect}}
+      child {
+        node[decision, text width=2.5cm, yshift=-1cm] {\textbf{App type?}}
+        % Web/Mobile
+        child {
+          node[decision, text width=2cm] {\textbf{Public\\client?}}
+          child {
+            node[flow, text width=1.5cm] {\textbf{Code\\+ PKCE}}
+            edge from parent[edge-yes] node[left, font=\tiny] {Yes}
+          }
+          child {
+            node[flow, text width=1.5cm] {\textbf{Auth\\Code}}
+            edge from parent node[right, font=\tiny] {No}
+          }
+          edge from parent node[left, font=\tiny, text width=1.2cm] {Web/Mobile}
+        }
+        % CIBA
+        child {
+          node[flow, text width=1.5cm] {\textbf{CIBA\\Flow}}
+          edge from parent node[right, font=\tiny, text width=1.2cm] {CLI}
+        }
+        % Implicit (deprecated) - using edge style
+        child[edge-deprecated] {
+          node[flow-dep, text width=1.5cm] {\textbf{Implicit}\\{\tiny AVOID}}
+          edge from parent[dashed] node[right, font=\tiny, text width=1cm] {Legacy}
+        }
+      }
+      edge from parent node[left, sloped, above, font=\tiny] {YES}
+    }
+    % SOUS-BRANCHE : OAuth 2.0 (NO)
+    child {
+      node[protocol, xshift=1.5cm] {\textbf{OAuth 2.0}}
+      child {
+        node[decision, text width=2.5cm, yshift=-3cm] {\textbf{Who accesses\\resource?}}
+        % User via app
+        child {
+          node[decision, text width=2cm] {\textbf{Public\\client?}}
+          child {
+            node[flow, text width=1.5cm] {\textbf{Code\\+ PKCE}}
+            edge from parent node[left, font=\tiny] {Yes}
+          }
+          child {
+            node[flow, text width=1.5cm] {\textbf{Auth\\Code}}
+            edge from parent node[right, font=\tiny] {No}
+          }
+          edge from parent node[left, font=\tiny, text width=1.3cm] {User via app}
+        }
+        % App itself
+        child {
+          node[flow, text width=1.5cm] {\textbf{Client\\Cred.}}
+          edge from parent node[left, font=\tiny, text width=1cm] {App itself}
+        }
+        % Device
+        child {
+          node[flow, text width=1.5cm] {\textbf{Device\\Flow}}
+          edge from parent node[left, font=\tiny, text width=1cm] {Device}
+        }
+        % External identity
+        child {
+          node[flow, text width=1.5cm] {\textbf{Assertion\\Grant}}
+          edge from parent node[right, font=\tiny, text width=1cm] {External\\IdP}
+        }
+        % Resource Owner Password (deprecated)
+        child[edge-deprecated] {
+          node[flow-dep, text width=1.5cm] {\textbf{RO Pass}\\{\tiny AVOID}}
+          edge from parent[dashed] node[right, font=\tiny, text width=1.2cm] {User direct}
+        }
+      }
+      edge from parent node[right, sloped, above, font=\tiny] {NO}
+    }
+    edge from parent node[right, sloped, above, font=\tiny] {API Authorization}
+  };
+
+% ============ LÉGENDE ============
+\node[draw, thick, rectangle, above=1cm of current bounding box.north, 
+      text width=9cm, align=left, anchor=north, xshift=8cm] (legend) {
+  \textbf{Legend:}\\[0.2cm]
+  %\centering
+  \begin{minipage}{0.60\textwidth}
   \centering
-  \includesvg[width=\textwidth, inkscapelatex=false]{../img/oauth_flow_choice}
-  \caption{Choosing the right grant type \cite[p.~108]{richer2017}}
-  \label{oauth_flow_choice}
+    \tikz{\node[flow, text width=2.8cm, minimum height=1cm] {Recommended flow};}\\[0.1cm]
+    \tikz{\node[flow-dep, text width=2.8cm, minimum height=1cm] {Deprecated/Unsafe};}\\[0.1cm]
+    \tikz{\draw[-Stealth, thick] (0,0) -- (1,0);}~~Standard path
+  \end{minipage}
+  \begin{minipage}{0.36\textwidth}
+    \centering
+    \tikz{\node[protocol, text width=2.5cm, minimum height=1cm] {Protocol selection};}\\[0.1cm]
+    \tikz{\node[decision, text width=2.5cm, minimum height=1cm] {Decision point};}\\[0.1cm]
+    \tikz{\draw[-Stealth, thick, dashed] (0,0) -- (1,0);}~~Legacy/Avoid
+  \end{minipage}
+};
+
+\end{tikzpicture}
+} 
+\caption{Protocol and Flow Selection Decision Tree}
+\label{fig:flow_decision_tree}
 \end{figure}
-\end{comment}
+
+In addition, the table below provides recapitulation of the protocols described above, along with their typical flows and use cases considerations.
+
+\begin{table}[htbp]
+\centering
+\begin{tabularx}{0.9\textwidth}{ 
+  | >{\raggedright\arraybackslash}X 
+  | >{\raggedright\arraybackslash}X 
+  | >{\raggedright\arraybackslash}X | 
+}
+\hline
+\textbf{Protocol} & \textbf{Flows} & \textbf{Use Cases} \\
+\hline
+\textbf{SAML} & 
+  \begin{tabular}[t]{@{}l@{}}
+    • SP-Initiated\\
+    • IdP-Initiated
+  \end{tabular} & 
+  Enterprise SSO, B2B federation, legacy applications \\
+\hline
+\textbf{OAuth 2.0} & 
+  \begin{tabular}[t]{@{}l@{}}
+    • Auth Code (+ PKCE)\\
+    • Client Credentials\\
+    • Assertion Grant\\
+    • Device Flow\\
+    • {\color{red} RO Password*}
+  \end{tabular} & 
+  API authorization, third-party integrations, M2M communication \\
+\hline
+\textbf{OIDC} & 
+  \begin{tabular}[t]{@{}l@{}}
+    • Auth Code (+ PKCE)\\
+    • Device Flow\\
+    • CIBA Flow\\
+    • {\color{red} Implicit*}
+  \end{tabular} & 
+  User authentication, modern SSO, mobile apps, social login \\
+\hline
+\multicolumn{3}{|l|}{{\footnotesize * Deprecated or discouraged flows}} \\
+\hline
+\end{tabularx}
+\caption{Flow Complexity Summary by Protocol}
+\label{tab:flow_summary}
+\end{table}
 
 
 \section{Token formats and structures}
 
-SAML, OAuth 2.0 and OIDC use different token formats and structures to represent the authentication and authorization information. In the following sections, we will describe the different token formats and structures of each protocol and compare them in a synthetic table at the end of this section.
+SAML, OAuth 2.0, and OIDC employ distinct approaches to representing authentication and authorization, rooted in their specific architectural philosophies and historical goals. SAML was designed in the early 2000s to facilitate secure identity exchange across enterprise domains. In contrast, OAuth 2.0 and OIDC were developed to meet the requirements of modern web and mobile applications. This section examines the token formats utilized by each protocol and analyzes their respective strengths and trade-offs.
 
+\subsection{SAML: XML-based assertions}
+
+As mentioned the chapter \ref{ch_prem}, SAML is an XML-based protocol that uses signed XML assertions to convey authentication and authorization information \cite{oasissaml}. 
+\subsubsection*{Structure and components}
+
+A SAML assertion is a bunch of information that provides statement about a subject generated by an assertion authority (IdP). The subject can be a user, a service, or a system and the assertions also contains conditions under which the statements are valid. Without the subject, an assertion is just a set of statements that have no meaning. 
+
+SAML assertions can contains three types of assertion statements \cite{oasissaml}: 
+
+\begin{description}
+  \item[Authentication statements (AuthnStatement):] Assert that the subject was authenticated by the IdP at a specific time using a particular method (e.g., password, multi-factor authentication, etc.). It is the most commonly used statement type.
+  \item[Attribute statements (AttributeStatement):] Provide additional information about the subject, such as their name, email address, group memberships, or any other relevant attributes. This information can be used by the SP to make authorization decisions.
+  \item[Authorization decision statements(AuthzDecisionStatement):] Indicate whether a subject is authorized or denied to access a particular resource or perform a specific action. This type of statement is less commonly used, as authorization decisions are often made based on the attributes provided in the AttributeStatement rather than explicit authorization decision statements.
+\end{description}
+
+\subsubsection*{Assertion structure}
+
+SAML assertions follow a well-defined XML schema and are always signed by the IdP to ensure their integrity and authenticity. The Listing \ref{xml:samlassertion} illustrates the structure of a SAML assertion.
+
+\begin{lstlisting}[caption={Structure of a SAML Assertion}, label={xml:samlassertion}]
+  <saml:Assertion>
+    <saml:Issuer> ... </saml:Issuer>
+    <ds:Signature> ... </ds:Signature>
+    <saml:Subject>
+      <saml:NameID> ... </saml:NameID>
+      <saml:SubjectConfirmation> ... </saml:SubjectConfirmation>
+    </saml:Subject>
+    <saml:Conditions>
+      <saml:AudienceRestriction> ... </saml:AudienceRestriction>
+    </saml:Conditions>
+    <saml:AuthnStatement> ... </saml:AuthnStatement>
+    <saml:AttributeStatement>
+      <saml:Attribute Name="email"> ... </saml:Attribute>
+    </saml:AttributeStatement>
+  </saml:Assertion>
+\end{lstlisting}
+
+A SAML assertions supplies information about an authenticated user and the authentication event\cite[p.~129]{wilson2022}. It can be considered as digital ID card consisting of four main sections:
+
+\begin{enumerate}
+  \item \textbf{The envelope (lines 2-3)}: Contains metadata about the assertion. The issuer (IdP EntityID), the signature, and optionally encryption metadata. This section ensures the integrity and authenticity of the assertion.
+  \item \textbf{Subject (lines 4-7)}: Identifies the authenticated entity (subject) via his identifier and specifies the subject confirmation method, which defines under what conditions a RP may treat this assertion as valid. Common methods include:
+    \begin{itemize}
+      \item Bearer: The assertion holder is assumed to be the subject (most common)
+      \item Holder-of-Key: The subject must prove possession of a specific cryptographic key to validate the assertion.
+      \item Sender-Vouches: The assertion is valid if the sender vouches for its authenticity, typically through a digital signature.
+    \end{itemize}
+  \item \textbf{Conditions (lines 8-10)}: Specifies the conditions under which the assertion is valid, such as time constraints or audience restrictions. Typical conditions include:
+    \begin{itemize}
+      \item Time-based conditions: Define the validity period of the assertion using attributes like \texttt{NotBefore} and \texttt{NotOnOrAfter}.
+      \item Audience restrictions: Specify which service providers (SPs) are allowed to consume the assertion, ensuring that it is only used by intended recipients.
+    \end{itemize}
+  \item \textbf{Statements (lines 11-14)}: The core payload containing authentication context, attributes and optionally authorization decisions. This is the actual information the SP consumes to make access control decisions.
+\end{enumerate}
+
+
+\subsubsection*{Attributes values and Extensibility}
+
+While SAML attribute values are typically simple strings, the protocol supports complex types including nested XML elements and Base64-encoded binary data\cite{oasissaml}. This extensibility allows for rich attribute schemas but contributes to SAML's verbosity and complexity.
+
+\subsection{OAuth 2.0: Opaque tokens and JWTs}
+
+In contrast to SAML's perspective XML format, OAuth 2.0 does not mandate any specific token structure. The protocol treats tokens as opaque credentials from the client's perspective, leaving implementation details to the AS\cite[p.~181]{richer2017}. 
+
+%Oppositely to SAML, OAuth 2.0 does not define the internal structure of access tokens, leaving it up to the authorization server to decide how to represent them.
+
+%Tokens are at the core of the OAuth 2.0 protocol \cite[p.~181]{richer2017}. Access tokens are used by client applications to access protected resources on behalf of a user. But, OAuth 2.0 does not define an internal protocol for the RS to learn meta-data about an AS's received token. That token can be represented in different formats, but the two most common formats are opaque tokens and JSON Web Tokens (JWTs).
+
+This design decision shows that OAuth aimed to seperate concerns. The CA does not need to understand token internals, its role is to present the token to the RS. It is the RS which is responsible to validate the token locally (if self-contained) or via introspection (if opaque).
+
+Additionnally, as OAuth 2.0 defines access tokens (for ressource access) and refresh tokens (for renewing access token), two dominant access token formats have emerged in practice:
+
+\subsubsection*{Opaque Tokens}
+
+Opaque tokens  are random strings that have no meaning or data, and their content are opaque to clients which provides high security extensions\cite[p.~182]{richer2017}. They work as pointers to server-side state stored in the AS database\cite{rfc7662}. 
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabularx}{0.9\textwidth}{ 
+  | >{\raggedright\arraybackslash}X 
+  | >{\raggedright\arraybackslash}X 
+  | >{\raggedright\arraybackslash}X  
+  | >{\raggedright\arraybackslash}X |
+}
+        \hline
+        %\rowcolor{gray!20}
+        \textbf{opaque token} & \textbf{username} & \textbf{scope} & \textbf{expires\_at} \\ \hline
+        \texttt{v4.k3j8...92m} & \texttt{alice\_smith} & \texttt{read write} & \texttt{2026-04-15}\\ \hline
+\end{tabularx}
+\caption{Example of a row for an Opaque Token.}
+\label{tab:opaque_token_db}
+\end{table}
+
+When a RS receives an opaque token, it must validate the token by making a token introspection request to the AS. This approach provides a high level of security, as the revocation can be done at the server side immediately after the user logs out. It also supplies privacy, as the token itself does not contain any sensitive information. However, it can introduce additional latency due to the need for back-channel validation.
+
+\subsubsection*{JSON Web Tokens (JWTs)}
+
+JSON Web Tokens (JWTs) are self-contained tokens that include all the necessary metadata within the token itself\cite[p~.183]{richer2017}\cite{rfc7519}. It consists of three Base64URL-encoded parts: 
+
+\begin{description}
+  \item \textcolor{red}{\textbf{Header:}} Contains metadata about the token, such as the signing algorithm used (e.g., HS256, RS256) and the token type (JWT).
+  \item \textbf{Payload:} Contains the claims, which are statements about the entity (typically, a user or a system) and additional data. Common claims include:
+    \begin{itemize}
+      \item \texttt{sub}: Subject identifier for the user.
+      \item \texttt{aud}: Audience for which the token is intended (e.g., resource server).
+      \item \texttt{exp}: Expiration time of the token.
+      \item \texttt{scope}: Permissions granted by the token.
+    \end{itemize}
+  \item \textcolor{blue}{\textbf{Signature:}} A cryptographic signature that ensures the integrity and authenticity of the token. It is generated by signing the header and payload with a secret key or a private key, depending on the signing algorithm used.
+\end{description}
+
+\begin{figure}[htp]
+    \centering
+    \begin{tcolorbox}[width=0.9\textwidth, colframe=gray!20, colback=white, arc=2pt, boxrule=0.5pt, fonttitle=\bfseries] 
+        \texttt{\small%
+        \textcolor{red}{eyJhbGciOiJIUzI1NiJ9}.%
+        \seqsplit{eyJleHAiOjE0MDIwMzkyOTIsInN1YiI6ImpvaG4iLCJuYmYiOjE0MDIwMzg2OTIsImF1ZCI6Wy}.%
+        \textcolor{blue}{\seqsplit{3v\_pa-QFCRwoKU0RaP7pLOoxT57okVuZMe\_A0UcqQ8}}%
+        }
+    \end{tcolorbox}
+    \caption{JWT Structure Example \cite[p.~180]{siri2020}}
+    \label{fig:jwt_exple}
+\end{figure}
+
+The RS validates the JWT locally by:
+\begin{enumerate}
+  \item Verifying the signature using the appropriate key (e.g. public key or shared secret).
+  \item Checking the token's claims, such as ensuring it has not expired and that the audience matches the RS.
+\end{enumerate}
+
+This format allows for stateless token validation, transparency and ease of use by clients, or RS token validation without needing to contact the AS. However, it can introduce security risks if not implemented correctly, such as token forgery or misuse of claims. Additionally, since JWTs are self-contained, they cannot be revoked until they expire, which can be a concern for long-lived tokens. And it also introduce HTTP overhead due to their larger size compared to opaque tokens, especially when they contain many claims.
+
+Since OAuth 2.0 is just an authorization protocol, the scope claim is not mandatory \cite[p.~185]{richer2017}. 
+
+\subsubsection*{Trade-offs and Hybrid approaches}
+
+The choice between opaque tokens and JWTs depends on the specific requirements of the application and the security considerations. Opaque tokens provide better security and privacy, while JWTs offer more flexibility and ease of use. 
+
+Many hybrid approaches exist to provide high security management and ease of use. And one hybrid approach is the use of short-lived JWT for the access token and a long-lived opaque token for the refresh token. This allows the access token to be self-contained and easily validated by the RS, while still providing the security benefits of opaque tokens for long-term credentials. 
+
+\subsection{OIDC: Standardized ID Token}
+
+The primary extension that OIDC adds to OAuth 2.0 to enable authentication to RP is the introduction of the ID Token\cite{oidc_core}\cite[p.~105]{wilson2022}\cite[p.~134]{siri2020}. While OAuth 2.0 intentionally avoids defining authentication details, OIDC fills this gap by specifying how identity information should be represented and validated.
+
+
+\subsubsection*{ID Token: a Specialized JWT for Authentication}
+The ID Token is a signed JWT that contains claims about the authenticated user and the authentication event itself\cite[p.~105]{wilson2022}\cite[p.~134]{siri2020}. They must be signed using JWS and optionally encrypted using JWE\cite{oidc_core}. Unlike OAuth 2.0 access tokens, which are API grant access that are consumed by the RS, ID Tokens are consumed by CA to retrieve information about the user.
+
+\textbf{Mandatory claims in an ID Token:}
+
+\begin{itemize}
+  \item \texttt{iss} (issuer): Identifies the OP that issued the ID Token.
+  \item \texttt{sub} (subject): A unique identifier for the authenticated user.
+  \item \texttt{aud} (audience): Identifies the intended recipient of the ID Token, which is typically the client application (RP).
+  \item \texttt{exp} (expiration time): Specifies the expiration time of the ID Token, after which it should no longer be accepted.
+  \item \texttt{iat} (issued at): Indicates the time at which the ID Token was issued.
+\end{itemize}
+
+\textbf{Optional but common claims:}
+
+\begin{itemize}
+  \item \texttt{name, email, picture}: The user information profile.
+  \item \texttt{nonce}: A string value used to associate a client session with an ID Token, and to mitigate replay attacks.
+  \item \texttt{at\_hash}: A hash of the access token, used to validate that the access token was issued alongside the ID Token.
+  \item \texttt{auth\_time}: The time when the user was authenticated, which can be used for session management and re-authentication policies.
+\end{itemize}
+
+
+\subsubsection*{Distinguishing ID Tokens from Access Tokens}
+
+As ID Token and access token are both JWTs and have few same claims, they can be easily confused. However, they serve different goals and have different audiences:
+
+\begin{table}[htbp]
+\centering
+\small
+\renewcommand{\arraystretch}{1.6}
+\begin{tabularx}{\textwidth}{ 
+   >{\raggedright\arraybackslash}X 
+   >{\raggedright\arraybackslash}X 
+   >{\raggedright\arraybackslash}X  
+}
+        \hline
+        %\rowcolor{gray!20}
+        \textbf{Aspect} & \textbf{ID Token} & \textbf{Access Token}  \\ \hline
+        \textbf{Purpose} & Authenticate user to client & Authorize API access \\ \hline
+
+        \textbf{Audience} & Client application (CA/RP) & Ressource Server (API) \\ \hline
+        \textbf{Consumer} & CA validates and reads it & RS validates it, client ignores internals \\ \hline
+        \textbf{Format} & Always JWT & Opaque or JWT \\ \hline
+        \textbf{Contains} & User identity claims & Authorization scopes/permissions \\ \hline
+\end{tabularx}
+\label{tab:id_oauth_diff}
+\end{table}
+
+\subsubsection*{Security Considerations}
+
+This architecture introduces several mechanisms to strengthen security inherited from OAuth 2.0:
+
+\begin{itemize}
+  \item \textbf{Nonce:} The nonce claim in the ID Token helps prevent replay attacks (reuse of the ID Token) by associating the token with a specific client session. The client generates a unique nonce value for each authentication request and validates that the same nonce is present in the ID Token response.
+  \item \textbf{at\_hash:} The at\_hash claim allows the client to verify that the access token was issued alongside the ID Token, ensuring that both tokens are part of the same authentication event.
+  \item \textbf{Standardized validation:} OIDC defines specific validation rules for ID Tokens, including signature verification, claim checks (e.g., issuer, audience, expiration), and nonce validation. This standardization reduces the risks of implementation errors that OAuth 2.0's flexibility can introduce when used for authentication without a clear specification.
+\end{itemize}
+
+
+\subsection{Token format practical implications}
+
+The choice of token format and structure has practical implications for security, performance, and interoperability. SAML's XML-based assertions requires XML parsing librairies, increases bandwith usage, but provides mature tooling and strong enterprise adoption. And, opaque tokens provide centralize control and enable instant revocation, but create scaling bottlenecks at the AS. JWTs enable stateless validation and rich claims, but require careful implementation to avoid security pitfalls.
+
+
+
+
+%Additionally of all the claims that are used in OAuth 2.0, ID Tokens may contains additional claims that provide information about the authenticated user and the authentication event, such as the user's unique identifier, name, email address, and other profile information. This allows CA to obtain information about the authenticated user in a standardized way, which is essential for implementing secure authentication and authorization in modern applications. ID Tokens are JSON Web Tokens (JWTs) that must be signed in a JWS format, and optionally encrypted in a JWE format. 
+
+
+
+% OIDC defines a specific token called the ID Token, which is a JWT that contains information about the authenticated user and the authentication event\cite{oidc_core}\cite[p.~110]{wilson2022}. The ID Token is issued by the OP and is intended to be consumed by the RP (client application) to authenticate the user and obtain information about them. The ID Token contains claims such as the user's unique identifier (\texttt{sub}), their name, email address, and other profile information. It also includes claims about the authentication event, such as the time of authentication and the authentication method used. The ID Token is signed by the OP to ensure its integrity and authenticity, and it can be encrypted for additional security. The ID Token is a critical component of OIDC, as it provides a standardized way for client applications to obtain information about the authenticated user and the authentication event, which is essential for implementing secure authentication and authorization in modern applications.
 
 \begin{comment}
   2.1. Architecture et flux d'authentification/autorisation
@@ -151,45 +612,6 @@ SAML, OAuth 2.0 and OIDC use different token formats and structures to represent
       - OAuth 2.0 : refresh tokens, révocation RFC 7009
       - OIDC : session management, logout flows
       > Matrice de comparaison
-
-  OAUTH 2.0
-
-  Firstly, when a ressource owner (RO) want to grant access to a client application, the client redirects him to an authorization endpoint via an HTTP Redirect request. 
-
-  Additionnally, authorization server(AS) in response triggers an authentification process to the user (this part is independent of the protocol, as the authentification method is not standardized by OAuth2.0), following the success authentification of the user, an autorization code is grant to the client application by the AS in an HTTP Redirect response.
-
-  Moreover, the client application authenticates itself to the AS and present the autorization code to act on behalf the RO via an HTTP POST with the parameters encoded as a form HTTP. This authentification are made seperately and only between each actor to prevent the the other actor to see the credentials of the other.
-
-  Finally, the AS sends an access token to client, and the client uses that token to access ressources stored at the ressource server(RS). The client use the token as an opaque key because it does not have to see what is inside the token. He only have to present it to the ressource server.
-
-
-  \begin{figure}[htp]
-    \centering
-    \includegraphics[width=0.8\textwidth]{../img/oauth_code_grant.png}
-    \caption{OAuth 2.0 Authorization Code Grant Flow \cite{richer2017}}
-    \label{oauth_code_grant}
-  \end{figure}
-
-
-  OIDC
-
-  For example, when signing up to an application nowadays, it exists many possibilities like providing username, password, or sign in with your Google account. Particularly the "Sign up with Google Account" button is the trigger of the OIDC mechanism.
-
-  When clicking on the latter button, the browser redirect the user to the Google authentication page, where the user will be asked to provide his credentials. After successful authentication, Google will send an ID token to the client application, which is used to create the user account. The client application can also obtain an access token to access protected resources on behalf of the user like OAuth 2.0. This allows the client to store minimal user information in a session or access protected ressources on behalf of the user. The OIDC provider (Google in this case) is in charge of the securization of the sensitive data of the users. 
-
-  Basically, the Figure \ref{oidc_overview} pictures the require actors to make OIDC work.
-
-  \begin{figure}[htp]
-    \centering
-    \includegraphics[width=0.8\textwidth]{../img/oidc-overview.png}
-    \caption{OIDC overview \cite{wilson2022}}
-    \label{oidc_overview}
-  \end{figure}
-
-
-
-  SAML
-
 \end{comment}
 
 

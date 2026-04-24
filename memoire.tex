@@ -21,9 +21,43 @@
 \usepackage{svg}
 
 \usepackage{pslatex}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc, shadows}
+\usetikzlibrary{trees, shapes, arrows.meta}
 \usepackage{tabularx}
 \usepackage{microtype}
 \usepackage{xurl}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\usepackage{seqsplit} % Optional but highly recommended for long strings
+\usepackage{bookmark}
+
+% Custom colors for XML highlighting
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+\definecolor{graylight}{rgb}{0.97,0.97,0.97}
+
+\lstset{
+  language=XML,
+  backgroundcolor=\color{graylight},
+  basicstyle=\ttfamily\small,
+  columns=fullflexible,
+  breaklines=true,
+  numbers=left,           % Position of line numbers
+  numberstyle=\tiny\color{gray},
+  stepnumber=1,           % Number every line
+  numbersep=10pt,         % Distance of numbers from code
+  tabsize=2,
+  showstringspaces=false,
+  commentstyle=\color{dkgreen},
+  keywordstyle=\color{blue},
+  stringstyle=\color{mauve},
+  frame=single            % Adds a frame around the code
+}
 
 \floatname{algorithm}{Algorithme}
 \renewcommand{\algorithmicrequire}{\textbf{Entrée:}}
