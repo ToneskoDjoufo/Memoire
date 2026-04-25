@@ -1,0 +1,80 @@
+\section{SAML 2.0 Assertion Example}
+\label{annex:saml_assertion}
+
+The following listing presents the full SAML 2.0 Response captured during the experimentation phase between Keycloak (IdP) and the Multimedia Retrieval Application (SP).
+
+\begin{lstlisting}[
+    language=XML, 
+    caption={Full SAML 2.0 Response from Keycloak IDP}, 
+    breaklines=true,       % Allows wrapping
+    breakatwhitespace=false % Crucial: SAML certs have no whitespace to break at
+]
+<samlp:Response xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" 
+               xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" 
+               Destination="http://localhost:88/saml" 
+               ID="ID_84f86ad2-9e73-4f4d-81cc-e028b8818d50" 
+               IssueInstant="2026-04-25T07:38:12.595Z" 
+               Version="2.0">
+  <saml:Issuer>http://localhost:8080/realms/myrealm</saml:Issuer>
+  <dsig:Signature xmlns:dsig="http://www.w3.org/2000/09/xmldsig#">
+    <dsig:SignedInfo>
+      <dsig:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
+      <dsig:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/>
+      <dsig:Reference URI="#ID_84f86ad2-9e73-4f4d-81cc-e028b8818d50">
+        <dsig:Transforms>
+          <dsig:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+          <dsig:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
+        </dsig:Transforms>
+        <dsig:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>
+        <dsig:DigestValue>dCsYnX/i7QrVldM2Rs9vDqP88doNmwJ9LM+Mz5hxIvk=</dsig:DigestValue>
+      </dsig:Reference>
+    </dsig:SignedInfo>
+    <dsig:SignatureValue>
+      X/uO7c8yAmv6fEJirwCWVSynj8qqMsPSGIrk+
+      [Truncated for brevity]
+      ...
+      /9fqi4J7bLlh8FwgOE6XubnfMGCcG7HAf477Tew==
+    </dsig:SignatureValue>
+    <dsig:KeyInfo>
+      <dsig:X509Data>
+        <dsig:X509Certificate>
+          MIICnTCCAYUCBgGdwzd+
+          [Truncated for brevity]
+          ...
+          k/dZsjmekljEYzo0Q==
+        </dsig:X509Certificate>
+      </dsig:X509Data>
+    </dsig:KeyInfo>
+  </dsig:Signature>
+  <samlp:Status>
+    <samlp:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success"/>
+  </samlp:Status>
+  <saml:Assertion xmlns="urn:oasis:names:tc:SAML:2.0:assertion" 
+                 ID="ID_093ae8a7-3b86-434a-9f4d-e39ceaa9d983" 
+                 IssueInstant="2026-04-25T07:38:12.593Z" 
+                 Version="2.0">
+    <saml:Issuer>http://localhost:8080/realms/myrealm</saml:Issuer>
+    <saml:Subject>
+      <saml:NameID Format="urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified">myuser</saml:NameID>
+      <saml:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer">
+        <saml:SubjectConfirmationData NotOnOrAfter="2026-04-25T07:43:10.593Z" 
+                                     Recipient="http://localhost:88/saml"/>
+      </saml:SubjectConfirmation>
+    </saml:Subject>
+    <saml:Conditions NotBefore="2026-04-25T07:38:10.593Z" 
+                    NotOnOrAfter="2026-04-25T07:39:10.593Z">
+      <saml:AudienceRestriction>
+        <saml:Audience>mir_saml</saml:Audience>
+      </saml:AudienceRestriction>
+    </saml:Conditions>
+    <saml:AttributeStatement>
+      <saml:Attribute Name="Role" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic">
+        <saml:AttributeValue xsi:type="xs:string">default-roles-myrealm</saml:AttributeValue>
+      </saml:Attribute>
+      <saml:Attribute Name="Role" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic">
+        <saml:AttributeValue xsi:type="xs:string">view-profile</saml:AttributeValue>
+      </saml:Attribute>
+      </saml:AttributeStatement>
+  </saml:Assertion>
+</samlp:Response>
+\end{lstlisting}

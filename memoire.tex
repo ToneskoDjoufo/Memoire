@@ -57,7 +57,29 @@
   keywordstyle=\color{blue},
   stringstyle=\color{mauve},
   frame=single            % Adds a frame around the code
+  %breaklines=true,       % Allows wrapping
+  breakatwhitespace=false % Crucial: SAML certs have no whitespace to break at
 }
+
+\lstdefinelanguage{json}{
+    basicstyle=\normalfont\ttfamily,
+    numbers=left,
+    numberstyle=\scriptsize,
+    stepnumber=1,
+    numbersep=8pt,
+    showstringspaces=false,
+    breaklines=true,
+    %frame=lines,
+    backgroundcolor=\color{white},
+    literate=
+     *{:}{{{\color{red}{:}}}}{1}
+      {,}{{{\color{red}{,}}}}{1}
+      {\{}{{{\color{blue}{\{}}}}{1}
+      {\}}{{{\color{blue}{\}}}}}{1}
+      {[}{{{\color{blue}{[}}}}{1}
+      {]}{{{\color{blue}{]}}}}{1},
+}
+
 
 \floatname{algorithm}{Algorithme}
 \renewcommand{\algorithmicrequire}{\textbf{Entrée:}}
@@ -216,9 +238,9 @@ The different parts of this work are discussed in the next chapters.
 \appendix
 
 \addcontentsline{toc}{chapter}{Annexe A: Ce que je ne veux pas mettre dans la partie principale du document}
-\section*{Annexe A: Ce que je ne veux pas mettre dans la partie principale du document}
+\section*{Annexe A: }
 
-Parce que c'est trop technique ... 
+\subfile{./annexes/annexe.tex}
 
 
 \addcontentsline{toc}{chapter}{Annexe B: Une autre pour la route}
