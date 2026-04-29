@@ -78,3 +78,22 @@ The following listing presents the full SAML 2.0 Response captured during the ex
   </saml:Assertion>
 </samlp:Response>
 \end{lstlisting}
+
+\section{OIDC Token Response Example}
+\label{annex:oidc_json}
+
+The following listing illustrates the JSON response received from the Keycloak Token Endpoint after a successful Authorization Code exchange for the \texttt{mir\_oidc} client.
+
+\begin{lstlisting}[language=json, caption={OIDC JSON response with truncated JWT strings}]
+{
+  "access_token": "eyJhbGciOiJSUzI1NiIsInR5cCIg...[TRUNCATED]...vMI1Mpfs2Ax4XDy0BpfQljIJZW0z9NnoDKAAINxpc-q28Ikn69rknL_sJoyfH0g",
+  "expires_in": 300,
+  "refresh_expires_in": 1800,
+  "refresh_token": "eyJhbGciOiJIUzUxMiIsInR5cCIg...[TRUNCATED]...1Dqe1xqPLSY31eP-gjuQ",
+  "token_type": "Bearer",
+  "id_token": "eyJhbGciOiJSUzI1NiIsInR5cCIg...[TRUNCATED]...QAxR22HjArIelqdTMholm-cf0dmYhjwdk2cqiBXowm8Vymc1rc0zw",
+  "not-before-policy": 0,
+  "session_state": "yMGgigPtRy9KCXSR4iPkNFlO",
+  "scope": "openid profile email"
+}
+\end{lstlisting}

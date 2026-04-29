@@ -9,16 +9,16 @@ SAML, OAuth 2.0 and OIDC implement different approaches to authentication and au
 
 \subsection{SAML: Simplicity through standardization}
 
-SAML is designed on a client-server architecture which communicates via the user's browser. Unlike OAuth 2.0, which defines multiple flows for different scenarios, SAML standardizes on two main flows: SP-initiated and IdP-initiated. This simplicity in flow design reflects his primary goal which is to enable seamless authentication across multiple service providers using a single identity provider.
+SAML is designed on a client-server architecture which communicates via the user's browser. Unlike OAuth 2.0, which defines multiple flows for different scenarios, SAML standardizes on two main flows: SP-initiated and IdP-initiated. This simplicity in flow design reflects his primary goal which is to enable seamless authentication across multiple service providers using a single IdP.
 
 \subsubsection*{SP-initiated flow}
 
-The SP-initiated flow (Figure \ref{saml_sp_initiated}) is triggered when a user attempts to access a protected resource directly\cite[p.~130]{wilson2022}\cite{oasissaml}. For example, when a student navigates to their online student account. Since they is not authenticated yet, the SP redirects their browser to the university's IDP with a SAML \texttt{AuthnRequest}. Upon successfull authentication, the IdP issues a signed SAML assertion that is transmitted back to the SP via the student's browser. The SP consumes the assertion to grant access to the requested resource, but validate the assertion's signature before. 
+The SP-initiated flow (Figure \ref{saml_sp_initiated}) is triggered when a user attempts to access a protected resource directly\cite[p.~130]{wilson2022}\cite{oasissaml}. For example, when a student navigates to their online student account. Since they is not authenticated yet, the SP redirects their browser to the university's IdP with a SAML \texttt{AuthnRequest}. Upon successfull authentication, the IdP issues a signed SAML assertion that is transmitted back to the SP via the student's browser. The SP consumes the assertion to grant access to the requested resource, but validate the assertion's signature before. 
 
-\begin{figure}[htp]
+\begin{figure}[H]
   \centering
-  \includegraphics[width=0.8\textwidth]{../img/IdP-initiated flow.png}
-  \caption{IdP initiated flow \cite{wilson2022}}
+  \includegraphics[width=0.8\textwidth]{../img/SP-initiated-flow.png}
+  \caption{SP initiated flow \cite{wilson2022}}
   \label{saml_sp_initiated}
 \end{figure}
 
@@ -28,23 +28,26 @@ Note that the SP never sees the user's credentials. Authentication is fully dele
 
 The IdP-initiated flow (Figure \ref{saml_idp_initiated}) starts at the IdP rather than the SP\cite[p.~131]{wilson2022}\cite{oasissaml}. For instance, if the student is already authenticated with a corporate application of the university, and then tries to access their online student account, they will not be prompted to reauthenticate. Instead, the IdP will automatically generate a SAML assertion and send it to the SP, granting access to the requested resource without requiring the user to go through a reauthentication. Additionally, this flow is useful for providing a seamless user experience across multiple applications within the same organization.
 
-\begin{figure}[htp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.8\textwidth]{../img/IdP-initiated flow.png}
   \caption{IdP initiated flow \cite{wilson2022}}
   \label{saml_idp_initiated}
 \end{figure}
 
+
+
 \subsubsection*{SAML Architecture}
 
 Basically, SAML allow a number of use cases to be implemented by putting together the right building blocks components\cite{oasissaml}. The components allow to exchange of identity, attribute, authentication and authorization information among autonomous organizations and domains which have  trusted relationship.
 
-Additionnally, SAML messages are transmitted exclusively through the user agent (browser), never via direct server-to-server communication in standard flows. It possesses many bindings but the primary ones used are:
-
+Additionnally, SAML messages are transmitted through the user agent (browser) with: 
 \begin{itemize}
   \item HTTP Redirect Binding: Used for transmitting SAML messages from the SP to the IdP, such as the \texttt{AuthnRequest} or \texttt{LogoutRequest}. This binding is suitable for small messages due to URL length limitations\cite[p.~347]{wilson2022}.
   \item HTTP POST Binding: Used for transmitting larger SAML messages. This binding allows for more secure transmission of sensitive information, as it can be sent within the base64-encoded content in the body of an HTTP form control rather than being exposed in the URL\cite[p.~347]{wilson2022}\cite{oasissaml}.
 \end{itemize}
+
+More over, SAML also supports back-channel bindings (such as SOAP over HTTP), which allow for direct server-to-server communication for tasks like attribute queries, but these are less commonly used in typical SSO scenarios. 
 
 \subsection{OAuth 2.0: Flexibility through specialization}
 
@@ -65,7 +68,7 @@ This is the commonest flow used for web applications and mobile applications. In
   \label{oauth_code_grant}
 \end{figure}
 
-\subsubsection*{Authorization Code Flow with Proof Key Code Exchange (PKCE)}
+\subsubsection*{Authorization Code Flow with Proof Key Code Exchange (PKCE)}\label{sec:pkce}
 
 This flow is an extension of the Authorization Code Flow and it was designed to add an additional layer of security and to allow SPA to use OAuth as they can not store securely the client secret. In this flow, the CA generates a random string called a "code verifier" and derives a "code challenge" from it by using a transformation method (e.g., SHA-256). When the CA initiates the authorization request via the front channel, it includes the code challenge in it. After the user authenticates and authorizes the CA, the AS returns an authorization code to the CA. The CA then authenticates itself and exchanges the authorization code and the original code verifier for an access token. The AS compares the code verifier with the code challenge by applying the same transformation method to the code verifier and checking if it matches the code challenge. If they match, the AS issues an access token. A refresh token is also issued in this flow to allow long-term access without requiring the user to reauthenticate. The Figure \ref{pkce_flow} illustrates this flow step by step.
 
@@ -113,7 +116,7 @@ This flow works similarly to the OAuth 2.0 Authorization Code Flow, but with cri
   \item The ID Token is validated with its signature, issuer, audience, expiration and nonce by the RP (client)\cite[p.~152]{wilson2022}. This validation process ensures that the ID Token is authentic and has not been tampered with, and that it was issued for the intended audience (CA).
 \end{itemize}
 
-PKCE is fully supported.
+%PKCE is fully supported.
 
 \subsubsection*{Implicit Flow}
 
@@ -133,14 +136,14 @@ In this flow, the client application initiates the authentication process by sen
 
 \subsection{Flows selection decision graph}
 
-Based on the different flows described above, when implementing SAML, OAuth 2.0 or OIDC, the choice of the flow can be based on the decision graph. 
+Based on the different flows described above, when implementing SAML, OAuth 2.0 or OIDC, the choice of the flow can be based on the decision graph in Figure \ref{fig:flow_decision_tree}. 
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \resizebox{\textwidth}{!}{
 \begin{tikzpicture}[
   % Configuration globale
-  scale= 0.65,
+  scale= 0.95,
   transform shape,
   grow=down,
   level distance=2.5cm,
@@ -318,7 +321,7 @@ Based on the different flows described above, when implementing SAML, OAuth 2.0 
 \caption{Protocol and Flow Selection Decision Tree}
 \label{fig:flow_decision_tree}
 \end{figure}
-
+\begin{comment}
 In addition, the table below provides recapitulation of the protocols described above, along with their typical flows and use cases considerations.
 
 \begin{table}[htbp]
@@ -363,30 +366,31 @@ In addition, the table below provides recapitulation of the protocols described 
 \caption{Flow Complexity Summary by Protocol}
 \label{tab:flow_summary}
 \end{table}
-
+\end{comment}
 
 \section{Token formats and structures}
 
-SAML, OAuth 2.0, and OIDC employ distinct approaches to representing authentication and authorization, rooted in their specific architectural philosophies and historical goals. SAML was designed in the early 2000s to facilitate secure identity exchange across enterprise domains. In contrast, OAuth 2.0 and OIDC were developed to meet the requirements of modern web and mobile applications. This section examines the token formats utilized by each protocol and analyzes their respective strengths and trade-offs.
+SAML, OAuth 2.0, and OIDC employ distinct approaches to representing authentication and authorization, rooted in their specific architectural philosophies and historical goals. SAML was designed in the early 2000s to facilitate secure identity exchange across enterprise domains. In contrast, OAuth 2.0 and OIDC were developed to meet the requirements of modern web and mobile applications. This section examines the token formats utilized by each protocol and analyzes their respective strengths and weaknesses.
 
 \subsection{SAML: XML-based assertions}
 
-As mentioned the chapter \ref{ch_prem}, SAML is an XML-based protocol that uses signed XML assertions to convey authentication and authorization information \cite{oasissaml}. 
+As mentioned in the chapter \ref{ch_prem}, SAML is an XML-based protocol that uses signed XML assertions to convey authentication and authorization information \cite{oasissaml}. 
 \subsubsection*{Structure and components}
 
 A SAML assertion is a bunch of information that provides statement about a subject generated by an assertion authority (IdP). The subject can be a user, a service, or a system and the assertions also contains conditions under which the statements are valid. Without the subject, an assertion is just a set of statements that have no meaning. 
 
-SAML assertions can contains three types of assertion statements \cite{oasissaml}: 
-
+SAML assertions can contains three types of assertion statements \cite{oasissaml}: Authentication statements, Attribute statements, and Authorization decision statements. Each type of statement serves a specific purpose in conveying information about the subject and its authentication or authorization status.
+\begin{comment}
 \begin{description}
   \item[Authentication statements (AuthnStatement):] Assert that the subject was authenticated by the IdP at a specific time using a particular method (e.g., password, multi-factor authentication, etc.). It is the most commonly used statement type.
   \item[Attribute statements (AttributeStatement):] Provide additional information about the subject, such as their name, email address, group memberships, or any other relevant attributes. This information can be used by the SP to make authorization decisions.
-  \item[Authorization decision statements(AuthzDecisionStatement):] Indicate whether a subject is authorized or denied to access a particular resource or perform a specific action. This type of statement is less commonly used, as authorization decisions are often made based on the attributes provided in the AttributeStatement rather than explicit authorization decision statements.
+  \item[Authorization decision statements(AuthzDecisionStatement):] Indicate whether a subject is authorized or denied to access a particular resource or perform a specific action. This type of statement is less commonly used, as authorization decisions are often made based onff the attributes provided in the AttributeStatement rather than explicit authorization decision statements.
 \end{description}
 
+\end{comment}
 \subsubsection*{Assertion structure}
 
-SAML assertions follow a well-defined XML schema and are always signed by the IdP to ensure their integrity and authenticity. The Listings below illustrate the important of one SAML assertion generated by using keycloak as IdP and a simple SP running on localhost.
+SAML assertions follow a well-defined XML schema and are always signed by the IdP to ensure their integrity and authenticity. The Listings below illustrate the important part of one SAML assertion generated by using keycloak as IdP and a simple SP running on localhost.
 
 \begin{comment}
 \begin{lstlisting}[caption={Structure of a SAML Assertion}, label={xml:samlassertion}]
@@ -497,13 +501,7 @@ JSON Web Tokens (JWTs) are self-contained tokens that include all the necessary 
 
 \begin{description}
   \item \textcolor{red}{\textbf{Header:}} Contains metadata about the token, such as the signing algorithm used (e.g., HS256, RS256) and the token type (JWT).
-  \item \textbf{Payload:} Contains the claims, which are statements about the entity (typically, a user or a system) and additional data. Common claims include:
-    \begin{itemize}
-      \item \texttt{sub}: Subject identifier for the user.
-      \item \texttt{aud}: Audience for which the token is intended (e.g., resource server).
-      \item \texttt{exp}: Expiration time of the token.
-      \item \texttt{scope}: Permissions granted by the token.
-    \end{itemize}
+  \item \textbf{Payload:} Contains the claims, which are statements about the entity (typically, a user or a system) and additional data.  
   \item \textcolor{blue}{\textbf{Signature:}} A cryptographic signature that ensures the integrity and authenticity of the token. It is generated by signing the header and payload with a secret key or a private key, depending on the signing algorithm used.
 \end{description}
 
@@ -521,15 +519,9 @@ JSON Web Tokens (JWTs) are self-contained tokens that include all the necessary 
     \label{fig:jwt_exple}
 \end{figure}
 
-The RS validates the JWT locally by:
-\begin{enumerate}
-  \item Verifying the signature using the appropriate key (e.g. public key or shared secret).
-  \item Checking the token's claims, such as ensuring it has not expired and that the audience matches the RS.
-\end{enumerate}
+%The RS validates the JWT locally by verifying the signature using the appropriate key (e.g. public key or shared secret) and checking the token's claims, such as ensuring it has not expired and that the audience matches the RS.
 
-This format allows for stateless token validation, transparency and ease of use by clients, or RS token validation without needing to contact the AS. However, it can introduce security risks if not implemented correctly, such as token forgery or misuse of claims. Additionally, since JWTs are self-contained, they cannot be revoked until they expire, which can be a concern for long-lived tokens. And it also introduce HTTP overhead due to their larger size compared to opaque tokens, especially when they contain many claims.
-
-Since OAuth 2.0 is just an authorization protocol, the scope claim is not mandatory \cite[p.~185]{richer2017}. 
+The RS validates the JWT locally via signature verification and claims validation, which allows for stateless token validation without needing to contact the AS. Additionally, since JWTs are self-contained, they cannot be revoked until they expire, which can be a concern for long-lived tokens. And it also introduce HTTP overhead due to their larger size compared to opaque tokens, especially when they contain many claims.
 
 \subsubsection*{Trade-offs and Hybrid approaches}
 
@@ -544,7 +536,7 @@ The primary extension that OIDC adds to OAuth 2.0 to enable authentication to RP
 
 \subsubsection*{ID Token: a Specialized JWT for Authentication}
 The ID Token is a signed JWT that contains claims about the authenticated user and the authentication event itself\cite[p.~105]{wilson2022}\cite[p.~134]{siri2020}. They must be signed using JWS and optionally encrypted using JWE\cite{oidc_core}. Unlike OAuth 2.0 access tokens, which are API grant access that are consumed by the RS, ID Tokens are consumed by CA to retrieve information about the user.
-
+\begin{comment}
 \textbf{Mandatory claims in an ID Token:}
 
 \begin{itemize}
@@ -563,8 +555,7 @@ The ID Token is a signed JWT that contains claims about the authenticated user a
   \item \texttt{at\_hash}: A hash of the access token, used to validate that the access token was issued alongside the ID Token.
   \item \texttt{auth\_time}: The time when the user was authenticated, which can be used for session management and re-authentication policies.
 \end{itemize}
-
-
+\end{comment}
 \subsubsection*{Distinguishing ID Tokens from Access Tokens}
 
 As ID Token and access token are both JWTs and have few same claims, they can be easily confused. However, they serve different goals and have different audiences:
@@ -588,6 +579,7 @@ As ID Token and access token are both JWTs and have few same claims, they can be
         \textbf{Format} & Always JWT & Opaque or JWT \\ \hline
         \textbf{Contains} & User identity claims & Authorization scopes/permissions \\ \hline
 \end{tabularx}
+\caption{Key differences between ID Tokens and Access Tokens in OIDC.}
 \label{tab:id_oauth_diff}
 \end{table}
 
@@ -657,31 +649,309 @@ For example, using keycloak, the generated access token is shown in the figure \
   \label{fig:access_token_kc}
 \end{figure}
 
-\subsubsection*{Security Considerations}
-
-This architecture introduces several mechanisms to strengthen security inherited from OAuth 2.0:
-
-\begin{itemize}
-  \item \textbf{Nonce:} The nonce claim in the ID Token helps prevent replay attacks (reuse of the ID Token) by associating the token with a specific client session. The client generates a unique nonce value for each authentication request and validates that the same nonce is present in the ID Token response.
-  \item \textbf{at\_hash:} The at\_hash claim allows the client to verify that the access token was issued alongside the ID Token, ensuring that both tokens are part of the same authentication event.
-  \item \textbf{Standardized validation:} OIDC defines specific validation rules for ID Tokens, including signature verification, claim checks (e.g., issuer, audience, expiration), and nonce validation. This standardization reduces the risks of implementation errors that OAuth 2.0's flexibility can introduce when used for authentication without a clear specification.
-\end{itemize}
-
-
 \subsection{Token format: practical implications}
 
 The architectural choice of token format significantly influences system security, performance, and interoperability. SAML's XML-based assertions facilitate granular security and benefit from mature enterprise tooling; however, they require specialized parsing libraries and incur higher bandwidth overhead due to their verbosity. In contrast, opaque tokens offer centralized control and simplified revocation logic, but they can introduce scaling bottlenecks at the Authorization Server (AS) due to the necessity of frequent introspection. Finally, JWTs support stateless validation and the inclusion of rich identity claims, though they demand rigorous implementation standards to mitigate common security vulnerabilities, such as improper signature verification.
+\begin{comment}
+\subsection{Comparative summary}
+\begin{center}
+  \begin{tabularx}{\textwidth}
+   {
+    | >{\raggedright\arraybackslash} X
+    || >{\raggedright\arraybackslash} X
+    | >{\raggedright\arraybackslash} X
+    | >{\raggedright\arraybackslash} X
+    |
+   }
+    \hline
+      \textbf{Concept} & \textbf{SAML} & \textbf{OpenID Connect} & \textbf{OAuth 2.0} \\
+    \hline
+      \textbf{Token/Assertion} & SAML Assertion & JSON Web Token (JWT) & Access, Refresh Tokens \\
+    \hline
+      \textbf{Token LifeTime} & Short(minutes) & Access: short, ID: short, Refresh: long & Access: short, Refresh: long \\
+    \hline
+      \textbf{Session Management} & Native(SSO, SLO) & Native(RP-initiated Logout,Front/Back Channel Logout) & None(delegated to application) \\
+    \hline
+      \textbf{Signature Mechanism} & XML signature & JWT signature & JWT signature \\
+    \hline 
+  \end{tabularx}
+\end{center}
 
-%The choice of token format and structure has practical implications for security, performance, and interoperability. SAML's XML-based assertions requires XML parsing librairies, increases bandwith usage, but provides mature tooling, granular(but more complex) security and strong enterprise adoption. Meanwhile, opaque tokens provide centralize control and enable instant revocation, but create scaling bottlenecks at the AS. Finally, JWTs enable stateless validation and rich claims, but require careful implementation to avoid security pitfalls.
+While OIDC and OAuth 2.0 does not differ enough in the token format, lifetime or signature mechanism, SAML differ in all these aspects. 
+\end{comment}
+\section{Security mechanisms}
+
+The security of identity and authorization protocols does not only depend on the cryptographic strength but also on the robutness of their threat models, defense strategies, and resistance to implementation errors. This section examines the security mechanisms of OAuth 2.0, OIDC and SAML, comparing their approaches to common attacks and vulnerabilities. It also highlights the importance of following best practices and implementing the recommended security measures to ensure the security of authentication and authorization processes. 
+
+\subsection{OAuth 2.0: flexible framework, security through best practices}
+
+OAuth 2.0 was designed as an authorization framework, not a standardized security protocol. This flexibility enables adaptation to diverse use cases but also introduces implementation variations which is the primary source of its vulnerabilities. Unlike SAML's approach, OAuth 2.0 security relies heavily on correct implementation of recommended practices.
+
+\subsubsection*{Threat landscape}
+
+OAuth 2.0 faces a distinct set of threats related to token-based authorization systems:
+\begin{description}
+  \item[Authorization code interception]: Attackers may attempt to intercept the authorization code during the Authorization Code flow, which could allow them to exchange the code for an access token and gain unauthorized access to protected resources.
+  \item[Cross-Site Request Forgery (CSRF):] Attackers may trick users into making unintended requests to the AS, potentially leading to unauthorized actions or access.
+  \item[Token leakage]: Access tokens can be leaked through various channels (e.g., browser history, logs, referrer headers, client-side javascript), which could allow attackers to use stolen tokens to access protected resources.
+  \item[Man-in-the-Middle (MitM) attacks]: Attackers may attempt to intercept and manipulate communication between the client, AS, and RS, potentially leading to unauthorized access or data breaches.
+  \item[Open Redirector attacks]: Attackers may craft malicious redirect URIs to trick users into granting access to unauthorized applications or stealing authorization codes if the AS does not strictly validate redirect URIs.
+\end{description}
+
+However, OAuth 2.0 can make these threats more likely if not implemented correctly. Some common implementation pitfalls:
+\begin{itemize}
+  \item Storing the client secret in public clients (e.g., single-page applications), which can lead to credential compromise.
+  \item Using OAuth protocol for authentication without implementing the necessary security measures, which can lead to vulnerabilities such as token leakage or impersonation attacks.
+  \item Not registering redirect URIs properly, which can allow attackers to redirect authorization responses to malicious endpoints.
+  \item Using the Implicit flow for public clients, which can expose access tokens in the browser and increase the risk of token leakage.
+  \item Failing to implement PKCE for public clients, which can leave the Authorization Code flow vulnerable to interception attacks.
+  \item Not validating the state parameter, which can make the application susceptible to CSRF attacks.
+  \item Using weak signing algorithms or failing to validate token signatures, which can lead to token forgery and unauthorized access.
+\end{itemize}
+
+The above threats and vulnerabilities highlight the importance of following best practices and implementing the recommended security mechanisms when using OAuth 2.0 for authentication and authorization. They are extensively documented in \cite[p.~121]{richer2017}, \cite{rfc9700} and \cite{rfc6749}.
+
+\subsubsection*{Core security mechanisms}
+
+OAuth 2.0 incorporates several security mechanisms to protect against common threats in token-based authentication and authorization. These mechanisms include:
+\begin{description}
+  \item[Proof Key for Code Exchange (PKCE)]: PKCE is an extension to the Authorization Code flow that mitigates authorization code interception attacks. It requires the client to generate a random code verifier and a corresponding code challenge, which are used during the authorization request and token exchange to ensure that the authorization code can only be exchanged by the legitimate client(see section \ref{sec:pkce} for more details). Even if the attacker intercepts the authorization code, they would not be able to exchange it for an access token without the correct code verifier, which was never transitted in the front channel.
+  \item[State parameter]: The state parameter is used by the client to prevent Cross-Site Request Forgery (CSRF) attacks by maintaining state between the authorization request and the callback\cite{rfc6749}. The client generates a unique state value for each authorization request and validates it upon receiving the response from the AS.
+  \item[Mandatory HTTPS]: OAuth 2.0 mandates the use of HTTPS for all communication. \textbf{Practical observation:} During the implementation phase, it was observed that the IdP (Keycloak) strictly enforced this via the \texttt{require-ssl} setting. When integrating an external IdP (Google), the system automatically blocked the authorization flow over HTTP to prevent token interception, necessitating an explicit (though non-production recommended) security bypass for the local development environment. 
+  \item[Strict Redirect URI validation]: To prevent \textit{Open Redirector} attacks, where an attacker crafts a link to redirect users to a malicious site after a legitimate login, the AS requires strict pre-registration of callback URLs. Any deviation (such as using https instead of http or query parameter variations) resulted in an immediate termination of the flow by AS, demonstrating the enforcement of the "Safe Redirect" policy.
+  \item[Token binding and short-lived tokens]: Access tokens should be short-lived (e.g., minutes) to limit the window of opportunity for stolen tokens to be used. Refresh tokens, which are long-lived, must be treated as highly sensitive and where possible, bound to specific clients via rotation mechanisms\cite[section 10.4]{rfc6749}.
+\end{description}
+
+\subsection*{Empirical validation: Keycloak deployment}
+
+To validate the practical enforcement of these theoretical mechanisms, an experimental OAuth 2.0/OIDC setup was deployed using keycloak as the AS, with integration to Google as an external IdP. Key observations from this implementation:
+
+\begin{description}
+  \item[HTTPS enforcement]: Keycloak strictly enforces HTTPS via the \texttt{require-ssl} setting. When attempting to integrate the external IdP (Google) over HTTP during local development, the system automatically rejected the authorization flow with an \texttt{invalid\_request} error, citing protocol mismatch. This required explicit (though non-production recommended) disabling of SSL requirement via \texttt{sslRequired=NONE} in the keycloak realm configuration, demonstrating the "secure by default" posture.
+  \item[Redirect URI validation]: Keycloak's strict redirect URI validation was empirically confirmed. Any mismatch in the registered redirect URI resulted in an immediate \texttt{\seqsplit{invalid\_redirect\_uri}} error, preventing open redirector attacks. For example, registering \texttt{\seqsplit{http://localhost:88/callback}} but using \texttt{\seqsplit{http://localhost:88/callback/}} in the authorization request led to a validation failure, illustrating the importance of precise URI registration.
+  \item[State parameter validation]: During testing, omitting the state parameter or using an incorrect value resulted in a \texttt{invalid\_request} error, confirming that the AS correctly implements CSRF protection mechanisms.
+\end{description}
+
+These observations demonstrate that modern AS implement OAuth 2.0 security mechanisms as mandatory, not optional, shifting the security burden from the application developers to the standardized protocol and IdP infrastructure.
+
+\subsection{OIDC: Standardized authentication security}
+
+OpenID Connect (OIDC) inherits all OAuth 2.0 security mechanisms (PKCE, state, HTTPS, redirect URI validation) and adds authentication specific protections to address vulnerabilities that arise when using OAuth for identity verification.
+
+\subsubsection*{Additional security mechanisms}
+
+\begin{description}
+  \item[Nonce parameter]: in the ID Token helps prevent replay attacks (reuse of the ID Token) by associating the token with a specific client session. The client generates a unique nonce value for each authentication request and validates that the same nonce is present in the ID Token response. It cryptographically binds the ID Token to the specific authentication request, ensuring that the token cannot be reused in a different context or by an attacker. 
+  \item[at\_hash]: allows the client to verify that the access token was issued alongside the ID Token, ensuring that both tokens are part of the same authentication event. It cryptographically binds the access token to the ID Token, preventing token substitution attacks where an attacker might try to use a valid ID Token with a different access token.
+  \item[Standardized validation]: OIDC defines specific validation rules for ID Tokens, including signature verification, claim checks (e.g., issuer, audience, expiration), and nonce validation\cite[Section~3.1.3.7]{oidc_core}. This standardization reduces the risks of implementation errors that OAuth 2.0's flexibility can introduce when used for authentication without a clear specification.
+  \item[Algorithm restrictions]: OIDC mandates that ID Tokens use asymetrics signature algorithms (e.g., RS256, ES256, etc) rather than symmetric HMAC-based algorithms. This requirement mitigates the risk of token forgery, as the client can verify the token's signature using the IdP's public key without needing to share a secret key, which could be compromised.
+  %\item[Identity Brokering and Trust Delegation]: OIDC allows for an architecture where a central AS (keycloak in our case) acts as a broker between the RP and external IdPs (e.g., Google). This enhances security by ensuring the application never handles or stores external credentials, effectively isolating the CA from the risks of credentials theft.
+\end{description}
+
+\subsubsection*{Keycloak observations: OIDC in practice}
+
+The experimental Keycloak deployment revealed that OIDC's standardized validation is enforced automatically:
+
+\begin{description}
+  \item[Nonce validation]: When the nonce parameter was omitted from the authentication request, Keycloak returned an \texttt{invalid\_request} error, indicating that nonce validation is mandatory for OIDC flows. This confirms that Keycloak enforces OIDC's replay attack protections by requiring the presence of a valid nonce in the authentication request and response.
+  \item[Identity brokering]: The Keycloak deployment used identity brokering, where Keycloak acted as an intermediary between the application (RP) and Google (external OP). From a security perspective, this architecture ensures:
+    \begin{itemize}
+      \item The application (RP) never directly handles or stores Google credentials.
+      \item Token validation is centralized a Keycloak
+      \item The application trusts only Keycloak's ID Tokens, not external IdP tokens directly.
+    \end{itemize} 
+  This delegation model isolates the application from credential theft risks and simplifies trust management.
+\end{description}
+
+\subsection{SAML security mechanisms}
+
+SAML's security model differs fundamentally from OAuth/OIDC. Rather that relying on modern web mechanisms like PKCE or short-lived tokens, it employs XML-based cryptography and a pre-established trust model rooted in public key infrastructure (PKI).
+
+\subsubsection*{Threat landscape}
+
+SAML faces distinct threats coming from its XML-based nature and browser-mediated flows:
+
+\begin{description}
+  \item[XML Signature Wrapping (XSW):] Attackers manipulate the XML structure to move a valid signature to a different part of the document, tricking the SP into validating a malicious assertion.
+  \item[Assertion Replay:] Attackers intercept valid SAML assertions and attempt to "replay" them to the SP to gain unauthorized access.
+  \item[Token Theft in the Browser:] Since SAML assertions often pass through the user's browser via HTTP POST or Redirect bindings, they are susceptible to interception if the client-side environment is compromised.
+  \item[Man-in-the-Middle (MitM) attacks]: Attackers may attempt to intercept and manipulate the SAML messages between the IdP and SP, potentially leading to unauthorized access or data breaches.
+\end{description}
+
+\subsubsection*{Core security mechanisms}
+
+To mitigate these threats, SAML relies on a combination of XML signatures, encryption, and a static trust model:
+\begin{description}
+  \item[Digital Signatures (XMLDSig):] SAML uses XML signatures to ensure the integrity and authenticity of the SAML assertions. The entire XML Assertion or the Response is signed, which ensures that the identity data has not been tampered with in transit through the browser. This approach provides strong protection against tampering but requires careful implementation to avoid vulnerabilities like XML Signature Wrapping (XSW).
+  \item[Encryption:] SAML allows for the encryption of specific "Attributes" or the entire Assertion, ensuring that only the intended SP can read the user's data (confidentiality). This is particularly important given the potential for token theft in the browser.
+  \item[Metadata Exchange:] Unlike OIDC dynamic discovery and registration, SAML relies on a "Static Trust" model, where the SP and IdP must exchange XML Metadata files containing their respective public keys and endpoint URLs before any communication occurs. This pre-established trust model ensures that the SP can verify the signatures on the SAML assertions using the IdP's public key.
+  \item[Temporal constraint and replay prevention:] SAML assertions include many claims such as strict timestamps (e.g., NotBefore, NotOnOrAfter), audience restrictions and "InResponseTo" identifiers to mitigate replay attacks. The SP must validate that the assertion is being used within the allowed time window and that it corresponds to a valid authentication request.
+\end{description}
 
 
+The security mechanisms of SAML, OAuth 2.0 and OIDC reflect their origins and design goals. While SAML was designed for enterprise federation in an era when XML and PKI were dominant with its security requirements. OAuth 2.0 where designed for API authorization in the web/mobile era where flexibility and ease of use were prioritized, and OIDC was designed to fill the authentication gap in OAuth 2.0 with standardized claims and validation rules. Each protocol has its own strengths and weaknesses, and the choice between them should be guided by the specific requirements of the application, the threat model, and the security posture of the deployment environment.
 
+\section{Revocation and session management}
 
-%Additionally of all the claims that are used in OAuth 2.0, ID Tokens may contains additional claims that provide information about the authenticated user and the authentication event, such as the user's unique identifier, name, email address, and other profile information. This allows CA to obtain information about the authenticated user in a standardized way, which is essential for implementing secure authentication and authorization in modern applications. ID Tokens are JSON Web Tokens (JWTs) that must be signed in a JWS format, and optionally encrypted in a JWE format. 
+%A valid logout mechanism is crucial for any authentication protocol to ensure that users can terminate their sessions and prevent unauthorized access. To ensure the security of user sessions, authentication protocols must provide mechanisms for session management and token revocation. This section compares the approaches taken by SAML, OAuth 2.0, and OIDC in managing user sessions and revoking tokens.
 
+Effective session termination and credential revocation are critical components of secure authentication systems. The ability to invalidate access when a user logs out, changes roles, or when credentials are compromised directly impacts the security posture of applications relying on these protocols. This section examines how SAML, OAuth 2.0, and OIDC approach session lifecycle maagement, logout propagation, and token revocation, highlighting their respective strengths, limitations, and architectural trade-offs.
 
+\subsection{SAML : SSO and Coordinated Logout}
 
-% OIDC defines a specific token called the ID Token, which is a JWT that contains information about the authenticated user and the authentication event\cite{oidc_core}\cite[p.~110]{wilson2022}. The ID Token is issued by the OP and is intended to be consumed by the RP (client application) to authenticate the user and obtain information about them. The ID Token contains claims such as the user's unique identifier (\texttt{sub}), their name, email address, and other profile information. It also includes claims about the authentication event, such as the time of authentication and the authentication method used. The ID Token is signed by the OP to ensure its integrity and authenticity, and it can be encrypted for additional security. The ID Token is a critical component of OIDC, as it provides a standardized way for client applications to obtain information about the authenticated user and the authentication event, which is essential for implementing secure authentication and authorization in modern applications.
+%SAML design provides native support for Single Sign-On (SSO) and Single Logout (SLO) to manage user sessions across multiple service providers. SSO allows users to authenticate once with the Identity Provider (IdP) and access multiple Service Providers (SPs) without needing to re-authenticate. For instance, when a user logs in to an SP, the SP redirects the user to the IdP for authentication. Once authenticated, the IdP issues a SAML assertion that allows the user to access the SP. If the user then accesses another SP that trusts the same IdP, they can access it without re-authenticating, as long as their session with the IdP is still active.  
+
+%Additionally, SLO enables users to log out from all SPs and the IdP in a single action, ensuring that their session is terminated across all connected services. For example, if a user initiates a logout from one SP, the SP sends a logout request to the IdP, which then propagates the logout to all other SPs that the user has accessed during their session. This ensures that the user's session is securely terminated across all services, preventing unauthorized access if the user forgets to log out from individual SPs. SAML's native support for SSO and SLO provides a seamless user experience while maintaining security across multiple SPs.
+
+SAML was designed with session-based Single Sign-On (SSO) as a core feature, enabling users to authenticate once at the IdP and access multiple SPs without repeated authentication. This model extends to logout through the Single Logout (SLO) mechanism.
+
+\subsubsection*{Single Sign-On (SSO)}
+
+When a user is logged in (via SP-initiated or IdP-initiated flow) to a SAML SP or IdP, the IdP maintains a session index that tracks which SPs the user has accessed during the SSO session. This centralized session registry enables coordinated logout.
+
+\subsubsection*{Single Logout (SLO)}
+
+SAML defines Single Logout to propagate logout across all SPs sharing the same IdP session. When a user initiates logout from any SP or the IdP:
+
+\textbf{SP-initiated Logout:}
+\begin{enumerate}
+  \item The SP sends a \texttt{LogoutRequest} to the IdP (via HTTP-Redirect or SOAP binding),
+  \item IdP identifies all SPs in the session (using the session index)
+  \item IdP sends \texttt{LogoutRequest} to each SP
+  \item Each SP terminates its local session and responds with \texttt{LogoutResponse}
+  \item IdP terminates its own session and redirects the user back to the initiating SP
+\end{enumerate}
+
+\textbf{IdP-initiated Logout:}
+\begin{enumerate}
+  \item The IdP initiates logout (e.g., user clicks "logout" at IdP, administrator forces logout, or session timeout)
+  \item IdP sends \texttt{LogoutRequest} to all SPs in the session
+  \item Each SP terminates its local session and responds
+  \item IdP displays logout confirmation
+\end{enumerate}
+
+\subsubsection*{SAML Logout Binding}
+
+SAML supports two primary bindings for logout messages: HTTP-Redirect (Front-channel) and SOAP (Back-channel)\cite[section~4.1]{oasissaml}. 
+With the HTTP-Redirect/HTTP-POST, the logout request is propagated through via browser redirects (front-channel), and the user's browser is redirected to each SP in sequence. This approach is simple to implement as they do not required direct network connectivity between SP and IdP \cite[347]{wilson2022} but is vulnerable to network interruptions, browser crashes, or user closing the tab mid-logout. 
+With the SOAP approach, the logout requests sent directly from IdP to SP via SOAP over HTTPS (back-channel) and the user's browser is not involved in propagation\cite[section~5.3]{oasissaml}. This approach is more reliable and not vulnerable to browser interruptions but requires direct network connectivity between IdP and SPs (firewall/NAT issues).
+
+\subsubsection*{Limitations of SAML SLO}
+
+While SAML's SLO provides a coordinated logout mechanism, it present some limitations:
+\begin{description}
+  \item[Orphaned sessions]: If a logout propagation fails (e.g., network error, SP offline, browser closed during redirect), some SPs may retain active sessions, creating orphaned sessions. The user appears logged out at the initiating SP and IdP but remains authenticated at other SPs. To mitigate this threat, SPs should implement timeouts as a secondary defense.
+  \item[No assertion revocation]: Unlike tokens, SAML assertions cannot be revoked once issued. If an attacker steals a valid assertion, they can use it until it expires(typically 5-10 minutes). SLO terminates sessions at the IdP (preventing new assertions) but does not invalidate existing assertions. Short assertion lifetimes (NotOnOrAfter) limit the window of opportunity.
+  \item[Synchronous nature]: SLO requires sequential communication with each SP, introducing latency proportional to the number of SPs. For a user with sessions at 10 SPs, logout can take several seconds.
+\end{description}
+
+\subsection{OAuth 2.0 : Stateless tokens, RFC 7009 revocation}
+
+OAuth 2.0 was designed for authorization, not authentication, and consequently defines no native session management  or logout mechanisms. Instead, it relies on token lifecycle management and an optional revocation endpoint.
+
+\subsubsection*{Token lifecycle}
+
+OAuth 2.0 works with pair of tokens. First, the short-lived access token, which grant access to protected resources. Once issued, they remain valid until expiration (if JWT) or until the AS marks them as revoked (if introspected). Second, the long-lived refresh tokens, which are used to obtain new access tokens without user interaction. They are the primary revocation target, as invalidating them prevents future access token issuance.
+
+\subsubsection*{Token revocation}
+
+RFC 7009 defines a Token Revocation endpoint that allows clients to invalidate refresh tokens (and optionally access tokens) before their natural expiration. For instance, when a user logs out from the CA, the CA sends a POST request to the AS's revocation endpoint with the token to be revoked and its credentials. Following that, the AS invalidates the token referenced and respond to the CA.
+
+\subsubsection*{Critical limitation: the revocation window}
+
+Even when refresh token revocation succeeds, access tokens already issued remain valid until expiration. This creates a revocation window (the time between logout and access token expiration) during which a stolen access token can still be used.
+
+To mitigate this threat, AS uses short-lived access tokens to reduce the revocation window, RS uses token introspection to queries AS for real-time token validity, AS can revoke immediately opaque tokens from database (at cost of scalability).
+
+\subsubsection*{No session concept}
+
+OAuth 2.0 has no notion of "sessions" in the authentication sense. Each access token is an independant authorization grant. There is no central registry of "logged-in users" and no logout propagation mechanism. For example, if a has authorized multiple applications (client\_A, client\_B, client\_C), logging out from client\_A does not affect sessions at client\_B or client\_C. Each client is responsible for its own token lifecycle.
+
+\subsection{OIDC : session management, standardized logout flows}
+
+OpenID Connect addresses OAuth 2.0's session management gap by introducing standardized logout mechanisms and a session monitoring specification\cite{iframe_logout}\cite[p.~301, p.~202]{richer2017}. 
+
+\subsubsection*{Session management specification and limitations}
+
+OIDC session management (optional specification) allows RP to detect session state changes at the OP. The RP can includes an invisible \texttt{<iframe>} pointing to the OP's \texttt{check\_session\_iframe} endpoint. The iframe javascript periodically computes a hash of the session state (from OP cookie) and the RP's javascript uses \texttt{postMessage} to query the iframe: "has sesssion changed?". If yes (user logged out at OP, session expired, etc), iframe notifies the RP, which can then prompt the user to re-authenticate or automatically log them out.
+
+This mechanism has some limitations:
+\begin{description}
+  \item[Browser-dependent]: requires javascript and third-party cookies to function, which may be blocked by some browsers or user settings.
+  \item[Polling overhead]: periodic checks introduce additional network and processing overhead, especially for applications with many users or long sessions.
+  \item[Not a logout mechanism]: Only detects changes; RP must implement logout logic.
+\end{description}
+
+Due to browser privacy restrictions, modern deployments prefer explicit logout flows.
+
+\subsubsection*{Standardized logout flows}
+
+OIDC defines three logout flows, each addressing different architectural requirements\cite{ibmOauth2}:
+\textbf{RP-initiated Logout:}
+The RP initiates logout by redirecting the user to the OP's \texttt{\seqsplit{end\_session\_endpoint}}. The flow is as follows:
+\begin{enumerate}
+  \item User clicks "logout" at RP
+  \item Client revokes refresh token (RFC 7009)
+  \item Client redirects user to OP's \texttt{end\_session\_endpoint} with \texttt{id\_token\_hint}, \texttt{state}, and \texttt{post\_logout\_redirect\_URI} as optional parameters.
+  \item OP terminates session 
+  \item OP redirects user back to RP or specified URI (\texttt{post-logout redirect})
+\end{enumerate}
+
+To prevent open redirector attacks, the \texttt{post\_logout\_redirect\_URI} must be pre-registered at the OP (similar to callback URO validation) to prevent open redirector attacks.
+
+However, this only terminates the session at the OP. If the user has active sessions at other RPs, they remain unaware. 
+
+\textbf{Front-channel Logout:} The OP propagates logout to all RPs through the user's browser using hidden iframes. The flow works like this:
+\begin{enumerate}
+  \item User logs out at RP\_A or the OP
+  \item OP renders a logout page containing \texttt{<iframe>} elements for each RP the user has sessions with.
+  \item Each RP's logout endpoint receives the request, validates the session ID, and clears the local session.
+  \item User's browser loads all iframes (logout propagates to all RPs)
+\end{enumerate}
+
+This flow is simple to implement (no back-channel connectivity required) and immediate notification to all RPs. However, it is vulnerable to browser interruptions, privacy concerns: browser sees all RPs the user has sessions with, and Content Security Policy (CSP) may block third-party iframes loading.
+
+\textbf{Back-channel Logout:} The OP sends logout notifications directly to each RP's via server-to-server HTTPS requests, bypassing the browser entirely. The flow is as follows:
+\begin{enumerate}
+  \item User logs out at RP\_A or the OP
+  \item OP sends POST requests to each RP's registered \texttt{backchannel\_logout\_uri} with a logout token containing the session ID or user identifier.
+  \item Each RP validates the logout token, terminates the local session, and responds with a success status if successful.
+\end{enumerate}
+
+This flow is not vulnerable to browser crashes or interruptions, it is privacy-preserving, and it is asynchronous as the OP can notify RPs in parallel, reducing logout latency. However, it requires back-channel connectivity, it is more complex to implement as the RPs must expose and secure a logout endpoint, and RPs must validate the logout token to prevent unauthorized logout requests. But it is the recommended mechanism for enterprise deployments where reliability and privacy are critical.
+
+\subsection{Comparative analysis: Archtectural trade-offs}
+
+The three present different approaches to session management and logout, each with its own architectural trade-offs. Firstly, SAML's session-based model provides a centralized control, immediate session termination across all SPs, but has no way to revoke individual asserions; it relies on assertion expiration. Secondly, OAuth 2.0's stateless token model is more scalable and no server-side session state is required, but it has a revocation window due to the stateless access tokens and no logout propagation. Finally, OIDC possess the best of both worlds (stateless tokens + coordinated logout) but at the cost of complexity (three logout mechanisms) and browser privacy features breaking in front-channel logout.
+%OpenID Connect (OIDC) extends OAuth 2.0 by introducing standardized session management and logout flows to address the limitations of OAuth 2.0 in managing user sessions. OIDC defines a session management specification that allows CAs to monitor the user's session state with the IdP and take appropriate actions when the session changes\cite{iframe_logout}\cite[p.~301, p.~202]{richer2017}. For example, if a user logs out of the IdP, the CA can detect this change and prompt the user to log in again or automatically log them out of the application. 
+%Furthermore, OIDC also defines several logout flows, including RP-initiated Logout, Front-Channel Logout, and Back-Channel Logout, to provide flexibility in how logout is handled across different applications and use cases. For instance, in RP-initiated Logout, the client can initiate a logout request to the IdP\cite[p.~204]{richer2017}. In Front-Channel Logout, the logout request is sent through the user's browser, while in Back-Channel Logout, the logout request is sent directly from the client to the IdP without involving the user's browser\cite{ibmOauth2}. These standardized session management and logout mechanisms in OIDC provide a more robust and secure way to manage user sessions compared to OAuth 2.0, ensuring that users can effectively terminate their sessions and prevent unauthorized access across multiple applications. 
+
+%Since JWTs are stateless, the revocation mechanism in OIDC and OAuth 2.0 are smarter than SAML's SLO. Because SAML mandatory implied a redirection when logging out, which can make an orphan session if a problem occurs during the redirection (e.g., network failure, browser crash, etc). In contrast, OIDC and OAuth 2.0's token-based approach allows for more flexible session management. 
+
+\begin{comment}
+  - XML Signature Wrapping (XSW) attacks and mitigations
+  - Assertion replay and mitigation via timestamps and identifiers
+  - Token theft in the browser and mitigation via encryption
+  - Static trust model and metadata exchange for key management
+\textbf{Threat landscape}
+
+SAML 2.0 security is primarily concerned with the integrity of the XML messages exchanged between the Service Provider (SP) and the Identity Provider (IdP). Common threats include:
+\begin{description}
+  \item[XML Signature Wrapping (XSW):] An attacker manipulates the XML structure to move a valid signature to a different part of the document, tricking the SP into validating a malicious assertion.
+  \item[Assertion Replay:] An attacker intercepts a valid SAML assertion and attempts to "replay" it to the SP to gain unauthorized access.
+  \item[Token Theft in the Browser:] Since SAML assertions often pass through the user's browser via HTTP POST or Redirect bindings, they are susceptible to interception if the client-side environment is compromised.
+\end{description}
+
+\textbf{Security mechanisms}
+
+SAML 2.0 relies on a pre-established trust model and heavy use of cryptography:
+\begin{description}
+  \item[Digital Signatures (XMLDSig):] Unlike OIDC's use of JWTs, SAML signs the entire XML Assertion or the Response. This ensures that the identity data has not been tampered with in transit through the browser.
+  \item[Encryption:] SAML allows for the encryption of specific "Attributes" or the entire Assertion, ensuring that only the intended SP can read the user's data (confidentiality).
+  \item[Metadata Exchange:] Security is rooted in a "Static Trust" model. Before any communication occurs, the SP and IdP must exchange XML Metadata files containing their respective public keys and endpoint URLs.
+  \item[NotOnOrAfter and SubjectConfirmation:] SAML assertions include strict timestamps and "InResponseTo" identifiers to mitigate replay attacks.
+\end{description}
+\end{comment}
 
 \begin{comment}
   2.1. Architecture et flux d'authentification/autorisation
