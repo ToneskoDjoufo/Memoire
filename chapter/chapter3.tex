@@ -1,0 +1,267 @@
+\documentclass[../memoire.tex]{subfiles}
+\begin{document}
+
+\chapter{Operational comparative analysis} \label{ch_thd}
+
+
+
+
+\section{Implementation complexity}
+
+A protocol's implementation complexity can significantly influence its adoption and long-term viability. 
+
+%SAML, being an older protocol, has a well-established ecosystem with mature libraries and tools as already mentioned in previous chapters. In contrast, OAuth 2.0 and OIDC, while more modern and flexible, may require a certain level of expertise to implement correctly, especially when it comes to securing the authorization flows and managing tokens. 
+
+\subsection{SAML}
+
+SAML's implementation complexity is often attributed to its reliance on XML and the need for a robust Public Key Infrastructure (PKI) to manage certificates for signing and encryption. When a developer implements SAML, they must ensure that the XML messages are correctly formatted, and that the necessary cryptographic operations are properly handled. This can lead to a steeper learning curve for those unfamiliar with XML and PKI concepts. However, the availability of mature libraries and tools can mitigate some of these challenges, making it easier for organizations with existing SAML infrastructure to maintain and extend their implementations. For example, in the experiment realized in chapter \ref{chapter2}, the configuration established was like shown in figure \ref{fig:saml_architecture}, where Keycloak acted as a Service Provider (SP) and SAML Mock as an Identity Provider (IdP). The user agent (browser) interacted with Keycloak, which in turn communicated with the SAML Mock IdP to authenticate the user. This setup highlighted the complexity of managing SAML assertions and the necessary configurations for both the SP and IdP.
+
+\begin{figure}[htp]
+    \centering
+    \resizebox{\textwidth}{!}{
+        \begin{tikzpicture}[
+            node distance=3.5cm,
+            box/.style={rectangle, draw, fill=blue!13, text width=2.8cm, align=center,
+                        minimum height=1.5cm, rounded corners},
+            user/.style={circle, draw, fill=green!15, align=center,
+                         minimum size=2cm, font=\small},
+            myarrow/.style={-{Stealth[scale=1.2]}, thick}
+        ]
+
+        % Nodes
+        \node[user] (user) {User Agent \\ (Browser)};
+        \node[box, right=of user] (keycloak) {\textbf{Keycloak} \\ (SP / Broker)};
+        \node[box, right=of keycloak] (idp) {\textbf{SAML Mock} \\ (IdP)};
+        \node[box, below=1.8cm of keycloak] (flask) {\textbf{Flask App} \\ (OIDC Client)};
+
+        % OIDC Flow (Bottom)
+        \draw[{Stealth[scale=1.2]}-{Stealth[scale=1.2]}, thick, dashed, blue]
+            (flask) -- node[right, font=\footnotesize] {1. OIDC Flow (JWT)} (keycloak);
+
+        % SAML Flow
+        \draw[myarrow] (keycloak) to
+            node[above, font=\footnotesize] {2. AuthnRequest} (idp);
+        \draw[myarrow] (idp) to [bend left=-25]
+            node[above, font=\footnotesize, xshift=.8em] {3. SAMLResponse (XML)} (user);
+        \draw[myarrow] (user) --
+            node[above, font=\footnotesize, sloped] {4. POST to ACS} (keycloak);
+
+        % Boundary box — fixed: gray not grey
+        \node[draw, gray, dashed,
+              fit=(user) (keycloak) (idp),
+              inner sep=0.8cm, yshift=0.6cm,
+              label=above:{\textbf{SAML 2.0 Trust Domain}}] {};
+
+        \end{tikzpicture}
+    }
+    \caption{Identity Brokering Experimental Architecture}
+    \label{fig:saml_architecture}
+\end{figure}
+
+Crucially, this setup works because Keycloak is implemented with the necessary SAML libraries and configurations to handle the SAML assertions from the IdP. Therefore, the complexity of enabling a SAML-based authentication in the SaaS application (Flask app) is abstracted away by Keycloak. Thus, reducing the implementation complexity for the Flask app, which only needs to implement OIDC to interact with Keycloak. This illustrates how leveraging an identity broker can mitigate some of the complexities associated with SAML, while still allowing the application to benefit from its features.
+
+Besides that, SAML complexity resides in the need of significant configuration for support across different customer as their SAML IdPs may have different requirements, resulting in minor differences in the SAML assertions and flows\cite[p.~136]{wilson2022}. This can lead to increased maintenance overhead, as each integration may require custom adjustments and testing to ensure compatibility. For example, during the integration of the SAML Identity Provider, a \texttt{RelayState} null pointer error was identified. This highlighted the importance of state maintenance in the SAML 2.0 protocol. Unlike OIDC, which often handles state via a signed cookie or a simple query parameter, SAML requires the Identity Provider to echo back the \texttt{RelayState} to the Service Provider to correlate the asynchronous authentication response with the original request session. This can lead to potential issues if the \texttt{RelayState} is not properly maintained or if there are divergences in how different IdPs handle it. Therefore, developers must be vigilant in ensuring that the SAML implementation correctly manages state and handles any variations in IdP behavior to avoid authentication failures and ensure a smooth user experience.
+
+Finally, for developers who are building new applications and plan to use OIDC for authentication and receive request to support SAML, the use of an authentication broker, or SAML library is highly recommended\cite[p.~136]{wilson2022}. SAML library helps to handle the SAML interactions, thus allowing the developers to focus on the application core functionalities instead of dealing with the complexities of SAML protocol\cite[p.~136]{wilson2022}. However, this also means that the organization must invest in maintaining the SAML library and ensuring it stays up to date with any changes in the SAML specifications or security best practices.
+
+\subsection{OAuth 2.0 and OIDC}
+
+OAuth 2.0 and OIDC, on the other hand, are designed to be more developer-friendly and easier to implement. They use JSON for data exchange, which is generally simpler to work with than XML. Additionally, the token-based approach of OAuth 2.0 and OIDC allows for more straightforward integration with modern web applications and APIs. 
+
+To integrate an OAuth 2.0/OIDC architecture in a CA, developers must have prerequisites such as a basic understanding of HTTP, RESTful APIs, and JSON, a basic cryptography knowledge and a good security awareness (PKCE, CSRF protection, redirect URI validation). The implementation typically involves setting up an AS (like Keycloak) to issue tokens, and configuring the CA (like the Flask app) to use these tokens for authentication and authorization. For example, in the experiment realized in Chapter \ref{chapter2}, two OIDC architecture were develloped. 
+
+The first one is shown in Figure \ref{fig:keycloak_flask_direct}, where Keycloak acted as the OP and the Flask app as the RP. The user agent (browser) interacted with Keycloak to authenticate the user, and then Keycloak issued a JWT token to the Flask app after a successful authentication. This setup demonstrated the relative simplicity of implementing OIDC compared to SAML, as it involved fewer steps and less complex configurations. Additionally, few modifications were needed to the Flask app to support this integration(see annex: Listing \ref{lst:flask_routes}).
+
+
+\begin{figure}[H]
+    \centering
+    \resizebox{\textwidth}{!}{
+        \begin{tikzpicture}[
+            node distance=4cm,
+            box/.style={rectangle, draw, fill=blue!13, text width=3cm, align=center, 
+                        minimum height=1.6cm, rounded corners},
+            user/.style={circle, draw, fill=green!15, align=center, 
+                         minimum size=2.2cm, font=\small},
+            myarrow/.style={-{Stealth[scale=1.2]}, thick}
+        ]
+
+        % Nodes
+        \node[user] (user) {User Agent \\ (Browser)};
+        \node[box, right=of user] (keycloak) {\textbf{Keycloak} \\ (OpenID Provider)};
+        \node[box, right=of keycloak] (flask) {\textbf{Flask App} \\ (Relying Party)};
+
+        % 1. Authorization Request
+        \draw[myarrow] (flask) -- node[above, font=\footnotesize] {1. Initiate OIDC Flow} (keycloak);
+        
+        % 2. Authentication (Front Channel)
+        \draw[myarrow] (keycloak) to 
+            node[above, font=\footnotesize] {2. Login Form} (user);
+        \draw[myarrow] (user) to
+            node[below, font=\footnotesize] {3. Credentials} (keycloak);
+            
+        % 4. Code Callback (Front Channel)
+        \draw[myarrow, thick, red] (keycloak) to [bend left=20]
+            node[above, font=\footnotesize] {4. Auth Code Redirect} (flask);
+
+        % 5. Token Exchange (Back Channel)
+        %\draw[{Stealth[scale=1.2]}-{Stealth[scale=1.2]}, thick, red] (flask) edge[bend right=27] 
+            %node[above, font=\footnotesize, color=black] {5. POST /token (Code for JWT)} (keycloak);
+        \draw[myarrow, thick, red] (flask) to [bend left=20]
+            node[below, font=\footnotesize] {5. POST /token (Code for JWT)} (keycloak);
+
+        % Boundary for OIDC Realm
+        \node[draw, gray, dashed, 
+              fit=(keycloak) (flask), 
+              inner sep=1.05cm, xshift=0.5cm,
+              label=above:{\textbf{OIDC keycloak Realm}}] {};
+
+        \end{tikzpicture}
+    }
+    \caption{Direct OIDC Architecture: Keycloak as the OP for Flask}
+    \label{fig:keycloak_flask_direct}
+\end{figure}
+
+And the second one is shown in Figure \ref{fig:oidc_brokering}, where Keycloak acted as a broker between the Flask app and Google as the IdP. The user agent (browser) interacted with Keycloak to authenticate the user via Google, and then Keycloak issued a JWT token to the Flask app after a successful authentication. This setup highlighted the flexibility of OIDC in supporting various authentication flows and integrating with different identity providers, while still maintaining a relatively straightforward implementation compared to SAML. However, it also revealed the importance of properly handling the back-channel token exchange between Keycloak and Google, which is a critical step in the OIDC flow that can introduce additional complexity if not implemented correctly. This back-channel communication is essential for exchanging the authorization code received from Google for an access token and an ID token, which Keycloak can then use to authenticate the user to the Flask app. Therefore, while OIDC is generally easier to implement than SAML, it still requires careful attention to the details of the authentication flow and the interactions between the various components to ensure a secure and functional implementation.
+
+\begin{figure}[H]
+    \centering
+    \resizebox{\textwidth}{!}{
+        \begin{tikzpicture}[
+            node distance=3.5cm,
+            box/.style={rectangle, draw, fill=blue!13, text width=2.8cm, align=center,
+                        minimum height=1.5cm, rounded corners},
+            user/.style={circle, draw, fill=green!15, align=center,
+                         minimum size=2cm, font=\small},
+            myarrow/.style={-{Stealth[scale=1.2]}, thick}
+        ]
+
+        % Nodes
+        \node[user] (user) {User Agent \\ (Browser)};
+        \node[box, right=of user] (keycloak) {\textbf{Keycloak} \\ (Broker)};
+        \node[box, right=of keycloak] (google) {\textbf{Google} \\ (IdP)};
+        \node[box, below=1.8cm of keycloak] (flask) {\textbf{Flask App} \\ (RP)};
+
+        % 1. Initial Request
+        \draw[myarrow] (flask) -- node[right, font=\footnotesize] {1. Initiate OIDC} (keycloak);
+
+        % 2. Redirect to Google
+        \draw[myarrow] (keycloak) to 
+            node[above, font=\footnotesize] {2. Auth Request} (google);
+
+        % 3. User Auth (Front Channel)
+        \draw[myarrow] (google) to [bend left=-25] 
+            node[above, font=\footnotesize, xshift=1.2em] {3. Consent \& Login} (user);
+
+        % 4. Code Callback (Front Channel)
+        \draw[myarrow] (user) -- 
+            node[above, font=\footnotesize, sloped] {4. Auth Code Redirect} (keycloak);
+
+        % 5. BACK-CHANNEL: Token Exchange (The missing link!)
+        %\draw[{Stealth[scale=1.2]}-{Stealth[scale=1.2]}, thick, red] (keycloak) edge[bend right=20] 
+            %node[below, font=\footnotesize, color=black] {5. Auth code/Token Exchange} (google);
+        \draw[myarrow, thick, red] (keycloak) to [bend left=15]
+            node[above, font=\footnotesize] {5. Auth code} (google);
+        \draw[myarrow, thick, red] (google) to [bend left=15]
+            node[below, font=\footnotesize] {6. Token Exchange} (keycloak);
+
+        % 6. Final Token to App
+        \draw[myarrow, dashed, blue] (keycloak) -- 
+            node[left, font=\footnotesize] {6. Issue JWT} (flask);
+
+        % Boundary
+        \node[draw, gray, dashed, 
+              fit=(keycloak) (google) (user), 
+              inner sep=1cm, yshift=0.6cm, 
+              label=above:{\textbf{OIDC Trust Relationship}}] {};
+
+        \end{tikzpicture}
+    }
+    \caption{OIDC Brokering with Back-Channel Token Exchange between Keycloak and Google}
+    \label{fig:oidc_brokering}
+\end{figure}
+
+In summary, due to its complexity and current popularity, it is quite difficult to find developers with SAML expertise, which can lead to increased implementation and maintenance costs. In contrast, OAuth 2.0 and OIDC are more widely adopted and have a larger pool of developers familiar with their concepts and implementations, making them more accessible for new projects. 
+
+However, the choice between these protocols should also consider other factors such as the specific use case, security requirements, and existing infrastructure, as SAML may still be the preferred choice for certain enterprise applications that require its robust features and established ecosystem.
+
+\section{Infrastructure requirements}
+
+The infrastructure required to deploy each protocol varies in complexity, cost and operational overhead.
+
+\subsection{SAML: Heavy Infrastructure Requirements}
+
+According to OASIS SAML editors \cite{oasissaml}, the core components of a SAML infrastructure include:
+
+\begin{itemize}
+    \item Identity Provider (IdP):  This can be open source (e.g., Shibboleth, Keycloak, SimpleSAMLphp) or commercial (e.g., Okta, OneLogin). 
+    \item Service Provider (SP) agent: SAML library or plugin integrated into the application (e.g., Keycloak SAML adapter, Spring Security SAML, Flask SAML).
+    \item Public Key Infrastructure (PKI) and Certificate Management: SAML relies heavily on XML signatures and encryption, which require a robust PKI to manage certificates for signing and encrypting SAML assertions. This adds complexity and operational overhead, as organizations must maintain the security of their private keys and ensure that certificates are properly rotated and updated (manually in general).
+    \item Metadata management: SAML relies on exchanging metadata between IdPs and SPs, which can be complex to manage, especially in large deployments with multiple partners.
+    \item Clock synchronization: SAML assertions have strict temporal validation (e.g. \texttt{NotBefore}, \texttt{NotOnOrAfter}). 
+\end{itemize}
+
+
+For example, a deployment of 10 applications and 1 IdP. It would require at least 10 SAML SP integrations (such as SAML library or plugin per app), 10 SAML metadata exchanges (one for each SP), and a robust PKI with at least 1 certificate for the IdP and 1 for each SP, along with a secure process for managing these certificates. 
+
+\subsection{OAuth 2.0 and OIDC: Lighter Infrastructure Requirements}
+
+OIDC and OAuth 2.0 share the same core infrastructure components\cite[p.~246]{richer2017}, which include:
+\begin{itemize}
+    \item Authorization Server (AS)/OpenID Provider (OP): This can be open source (e.g., Keycloak, IdentityServer) or commercial (e.g., Auth0, Okta).
+    \item Client applications: These are the applications that will use the AS/OP for authorization/authentication (e.g., web apps, mobile apps, APIs).
+    \item HTTP/HTTPS infrastructure: TLS certificates for AS and all endpoints.
+\end{itemize}
+
+OAuth 2.0 and OIDC do not require a PKI for their core functionality, as they rely on bearer tokens (e.g., JWTs) that can be signed using symmetric keys or asymmetric keys without the need for complex certificate management. This significantly reduces the operational overhead compared to SAML. However, if an organization chooses to use asymmetric signing for JWTs, they will need to manage public keys and ensure secure key rotation, but one OIDC feature (\texttt{jwks\_uri}) simplify the management of this rotation\cite[section.~3]{oidc_core}. Additionally, OIDC's use of JSON and RESTful APIs simplifies the integration process and reduces the need for specialized libraries or plugins, further lowering the infrastructure requirements.
+
+For example, a deployment of 10 applications and 1 AS/OP. It would require at least 10 OIDC client registrations (configuration, not infrastructure), 1 AS/OP (e.g., Keycloak), 1 key pair for AS signing (if using asymmetric signing), and standard HTTP/HTTPS infrastructure with TLS certificates for secure communication. Additionally, no agents or plugins needed for the applications: in the experiment realized, the Flask app integrated with Keycloak using a lightweight OIDC library (Authlib), which simplified the implementation.
+
+\subsection{Comparative Summary}
+
+\begin{table}[H]
+    \centering
+    \label{tab:infrastructure_comparison}
+    \begin{tabularx}{\textwidth}{@{} l X X @{}}
+        \toprule
+        \textbf{Aspect} & \textbf{SAML 2.0 (Legacy/Enterprise)} & \textbf{OAuth 2.0 / OIDC (Modern)} \\ \hline
+        \midrule
+        \textbf{Trust Model} & Based on static X.509 certificates. & Based on dynamic JWKS (JSON keys). \\
+        \addlinespace
+        \textbf{Key Management} & Manual distribution of XML metadata. & Auto-discovery via \texttt{.well-known} endpoint. \\
+        \addlinespace
+        \textbf{Maintenance} & Manual renewal (high risk of service outage). & Transparent rotation and automatic updates. \\
+        \addlinespace
+        \textbf{Clock Sync} & \textbf{Critical} & \textbf{Tolerant} \\
+        \addlinespace
+        \textbf{Deployment} & Often requires server-side Agents or proxies. & Native integration via lightweight libraries. \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Infrastructure summary: SAML vs. OIDC}
+\end{table}
+
+This comparative summary highlights the significant differences in infrastructure requirements between SAML and OIDC. SAML's infrastructure overhead is justifies in mature, stable environments where the cost is amortized over time and the organization has the necessary expertise to manage it. In contrast, OIDC's lighter infrastructure requirements make it more suitable for modern applications and organizations that prioritize agility and ease of integration. However, the choice between these protocols should also consider other factors such as library availability and others aspects that will be discussed in the next sections.
+
+
+\section{Maturity and library disponibility}
+
+\begin{comment}
+CHAPITRE 3 : ANALYSE COMPARATIVE OPÉRATIONNELLE
+3.1. Complexité de mise en œuvre
+    - Courbes d'apprentissage
+    - Prérequis infrastructure (PKI, serveurs, etc.)
+    - Disponibilité bibliothèques 
+    > Évaluation des coûts initiaux
+    
+3.2. Maintenance et évolution
+    - Gestion certificats SAML vs clés JWT
+    - Évolution des specs (stabilité SAML vs dynamisme OAuth/OIDC)
+    - Compétences disponibles sur le marché
+    > Évaluation des coûts long terme
+    
+3.3. Interopérabilité et écosystème
+    - SAML : maturité entreprise, base installée
+    - OAuth 2.0 : fragmentation implémentations
+    - OIDC : certifications, standardisation
+    > Impact sur le choix technologique
+\end{comment}
+\end{document}

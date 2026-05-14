@@ -97,3 +97,94 @@ The following listing illustrates the JSON response received from the Keycloak T
   "scope": "openid profile email"
 }
 \end{lstlisting}
+
+
+\section{Keycloak SAML Configuration Screenshots}
+\label{annex:keycloak_screenshots}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{img/keycloak_saml_config.png}
+    \caption{Keycloak SAML Client Configuration for mir\_saml}
+    \label{fig:keycloak_saml_config}
+\end{figure}
+
+\section{SAMLMock IdP Configuration Screenshots}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{img/samlmock_config.png}
+    \caption{SAMLMock IdP Configuration for Keycloak}
+    \label{fig:samlmock_config}
+\end{figure}
+
+\section{Google cloud console OIDC configuration screenshots}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{img/google_cloud_config.png}
+    \caption{Google Cloud Console OIDC Client Configuration for mir\_oidc}
+    \label{fig:google_oidc_config}
+\end{figure}
+
+\section{Google IdP OIDC Keycloak Configuration Screenshots}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{img/google_oidc_config.png}
+    \caption{Keycloak Identity Provider Configuration for Google OIDC}
+    \label{fig:google_idp_config}
+\end{figure}
+
+\section{Keycloak OIDC Client Configuration Screenshots}
+
+\begin{figure}[htp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{img/keycloak_oidc_config.png}
+    \caption{Keycloak OIDC Client Configuration for mir\_oidc}
+    \label{fig:keycloak_oidc_config}
+\end{figure}
+
+\newpage
+\section{Flask API code snippet}
+
+\begin{lstlisting}[language=Python, caption={Flask OIDC Configuration and Routes with Keycloak}, label={lst:flask_routes}]
+@app_bp.route("/login")
+def login():
+    redirect_uri = url_for("app.authorize", _external=True)
+    return oauth.keycloak.authorize_redirect(redirect_uri)
+
+@app_bp.route("/authorize")
+def authorize():
+    token = oauth.keycloak.authorize_access_token()
+    user_info = token.get("userinfo")
+    
+    # Session management
+    session["user"] = user_info
+    return redirect(url_for("app.index"))
+
+@app_bp.route("/logout")
+def logout():
+    session.clear()
+    return_to = url_for("app.index", _external=True)
+    return redirect(
+        f"http://localhost:8080/realms/myrealm/protocol/openid-connect/logout"
+        f"?client_id=mir_oidc&post_logout_redirect_uri={return_to}"
+    )
+
+app_bp = Blueprint("app", __name__)
+oauth = OAuth()
+
+def setup_oidc(app):
+    oauth.init_app(app)
+    oauth.register(
+        name="keycloak",
+        client_id="mir_oidc",
+        server_metadata_url="http://localhost:8080/realms/myrealm/.well-known/openid-configuration",
+        client_kwargs={
+            "scope": "openid profile email",
+            "code_challenge_method": "S256",
+        },
+    )
+\end{lstlisting}
+

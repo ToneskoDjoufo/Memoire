@@ -22,7 +22,8 @@
 
 \usepackage{pslatex}
 \usepackage{tikz}
-\usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc, shadows}
+%\usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc, shadows}
+\usetikzlibrary{shapes, arrows.meta, positioning, calc, shadows, fit, trees}
 \usetikzlibrary{trees, shapes, arrows.meta}
 \usepackage{tabularx}
 \usepackage{microtype}
@@ -34,6 +35,7 @@
 \usepackage{tcolorbox}
 \usepackage{seqsplit} % Optional but highly recommended for long strings
 \usepackage{bookmark}
+\usepackage{tabularx}
 
 % Custom colors for XML highlighting
 \definecolor{dkgreen}{rgb}{0,0.6,0}
@@ -224,12 +226,14 @@ The different parts of this work are discussed in the next chapters.
 
 \subfile{./chapter/chapter2.tex}
 
+\subfile{./chapter/chapter3.tex}
+
 \chapter{Conclusion} \label{ch_ccls}
 
 
 
 
-\addcontentsline{toc}{chapter}{Bibliographie}
+\addcontentsline{toc}{chapter}{Bibliography}
 \bibliographystyle{acm}
 \bibliography{memoire}
 
@@ -237,18 +241,14 @@ The different parts of this work are discussed in the next chapters.
 
 \appendix
 
-\addcontentsline{toc}{chapter}{Annexe A: Ce que je ne veux pas mettre dans la partie principale du document}
+\addcontentsline{toc}{chapter}{Annexe A:}
 \section*{Annexe A: }
 
 \subfile{./annexes/annexe.tex}
 
 
-\addcontentsline{toc}{chapter}{Annexe B: Une autre pour la route}
-\section*{Annexe B: Une autre pour la route}
-
-Pour faire joli ... 
-
-
+\addcontentsline{toc}{chapter}{Annexe B:}
+\section*{Annexe B:}
 
 \end{document}
 
