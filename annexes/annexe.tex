@@ -188,3 +188,24 @@ def setup_oidc(app):
     )
 \end{lstlisting}
 
+\section{SAML trend on StackOverflow}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{img/saml_trend.png}
+    \caption{SAML-related questions on StackOverflow over the past decade (source: StackOverflow Trends)}
+    \label{saml_trend}
+\end{figure}
+
+This graph illustrates the declining trend of SAML-related questions on StackOverflow, indicating a shift in industry preference towards more modern authentication protocols like OIDC. The peak around 2015-2016 corresponds to the period when SAML was widely adopted, while the subsequent decline reflects the rise of OIDC and other newer standards. To obtain this data, i used the StackExchange web page (\url{https://data.stackexchange.com/stackoverflow/query}) to query the number of questions tagged with "saml" over time, and then visualized the results using a line graph. The SQL query used was:
+
+\begin{lstlisting}[language=SQL, caption={SQL query to retrieve SAML question trends from StackOverflow}]
+  SELECT
+      YEAR(CreationDate) AS Year,
+      COUNT(*) AS Questions
+  FROM Posts
+  WHERE Tags LIKE '%<saml>%'
+    AND PostTypeId = 1
+  GROUP BY YEAR(CreationDate)
+  ORDER BY Year
+\end{lstlisting}

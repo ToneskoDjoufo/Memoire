@@ -22,7 +22,6 @@
 
 \usepackage{pslatex}
 \usepackage{tikz}
-%\usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc, shadows}
 \usetikzlibrary{shapes, arrows.meta, positioning, calc, shadows, fit, trees}
 \usetikzlibrary{trees, shapes, arrows.meta}
 \usepackage{tabularx}
@@ -82,6 +81,8 @@
       {]}{{{\color{blue}{]}}}}{1},
 }
 
+\setcounter{secnumdepth}{3}
+\renewcommand{\thesubsubsection}{\roman{subsubsection}.}
 
 \floatname{algorithm}{Algorithme}
 \renewcommand{\algorithmicrequire}{\textbf{Entrée:}}
@@ -221,12 +222,17 @@ The author, DJOUFO TAFEJO Tonesko, certifies that he has complied with the ethic
 
 The different parts of this work are discussed in the next chapters. 
 
+% TODO : Rearrange the chapter to find a way to add the following points:
+% The experimental work 
+% The different results obtained
 
 \subfile{./chapter/chapter1.tex}
 
 \subfile{./chapter/chapter2.tex}
 
 \subfile{./chapter/chapter3.tex}
+
+\subfile{./chapter/chapter4.tex}
 
 \chapter{Conclusion} \label{ch_ccls}
 

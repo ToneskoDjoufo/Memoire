@@ -3,16 +3,57 @@
 
 \chapter{Operational comparative analysis} \label{ch_thd}
 
+While technical capabilities determine what a protocol can do, operational factors determine what organizations will do. The choice between SAML, Oauth 2.0, and OIDC is not purely technical; it is fundamentally shaped by implementation complexity, cost structures, available expertise, and organizational constraints. This chapter examines the protocols through the real-world deployment horizon: human effort, financial investment, time horizons, and architectural implications that govern protocol adoption in enterprise contexts.
 
 
+\section{Implemantation complexity}
 
-\section{Implementation complexity}
+Implementation complexity is a multidimensional concept including learning curve, prerequisite knowledge, infrastructure requirements, tooling maturity, etc. For organizations evaluating identity protocols, complexity directly translates to cost, risk, and time-to-market. A more complex protocol may require specialized expertise, extensive configuration, and ongoing maintenance, which can strain resources and delay deployment. Conversely, a simpler protocol can accelerate development and reduce operational overhead but may lack certain features or flexibility. Therefore, understanding the implementation complexity of SAML, OAuth 2.0, and OIDC is crucial for making informed decisions that align with organizational capabilities and goals.
+
+\subsection{Maturity and library disponibility}
+
+The quality, variety, and support of available libraries directly impact implementation speed and reliability. 
+
+\subsubsection{SAML: Mature but Stagnant Library Ecosystem}
+
+SAML has a well-established ecosystem with mature libraries and tools. For example, \texttt{\seqsplit{Shibboleth}} is implemented in Java, widely used, highly configurable, enterprise grade, but complex to set up and maintain. \texttt{SimpleSAMLphp} is implemented in PHP, widely used, and good documentation. \texttt{Keycloak} is implemented in Java, modern IdP with SAML support, excellent UI and documentation. \texttt{WSO2 Identity Server} is implemented in Java, supports SAML and OIDC, enterprise features, but can be resource-intensive and complex. All the preceding libraries are open source and server-side. For client-side, there are libraries like \texttt{python-saml}, \texttt{ruby-saml}, and \texttt{node-saml}, which provide SAML support for various programming languages. However, the SAML library ecosystem is relatively stagnant\cite{shibboleth2024}, with fewer updates and innovations compared to more modern protocols like OIDC. This can lead to challenges in finding up-to-date libraries that support the latest security best practices and features.
+
+SAML maturity comes with many advantages but also with some drawbacks. For instance, the mature libraries have been battle-tested in production for many years and edges cases are well known and documented. However, the lack of innovation and updates can lead to security vulnerabilities if the libraries are not actively maintained. Additionally, empirical data from platforms such as Stack Overflow indicates a significant decrease in new queries related to SAML implementation over the past several years (see Figure \ref{saml_trend} in annexes) while SAML remains quite difficult to debug and implement. 
+
+\subsubsection{OAuth 2.0: Fragmented but Evolving Ecosystem}
+
+OAuth 2.0 has a more fragmented ecosystem with a wide variety of libraries available for different programming languages and frameworks. For example, \texttt{Authlib} is implemented in Python, supports OAuth 2.0 and OIDC, and has good documentation. \texttt{Spring Security} is implemented in Java, widely used in enterprise applications, and supports OAuth 2.0 and OIDC. \texttt{Passport.js} is implemented in Node.js, widely used for web applications, and supports OAuth 2.0 and OIDC. \texttt{DotNetOpenAuth} is implemented in .NET, supports OAuth 2.0 and OIDC. The OAuth 2.0 library ecosystem is more dynamic than SAML's, with frequent updates and new libraries emerging to support the evolving needs of developers and security requirements. However, the fragmentation can lead to inconsistencies in implementation quality and security across different libraries. Developers may need to carefully evaluate and choose libraries that are actively maintained and have a strong track record of security and reliability.
+
+More over, the community around OAuth 2.0 is very active, with many resources available for learning and troubleshooting. However, the rapid evolution of the protocol and the variety of libraries can lead to confusion for developers, especially those new to OAuth 2.0. It is crucial for developers to stay informed about the latest developments in the OAuth 2.0 ecosystem and to choose libraries that are well-maintained and have a strong community support.
+
+Additionally, the documentation are abundant but scattered on the web and their quality varies. For example, the official OAuth 2.0 specifications (RFC) are rigourous and technical, but are not comprehensive for beginners. Blog posts and tutorials are often easy to understand but many of them are outdated, incomplete and unaware of current security threats. And the vendor documentation (e.g., Auth0, Okta) can be helpful but often oriented to selling their products and use their specific libraries.
+
+Therefore, while OAuth 2.0 has a more vibrant library ecosystem than SAML, enterprises and developers must be cautious in selecting libraries and resources to ensure they are using secure and well-maintained options.
+
+\subsubsection{OIDC: Standardized and Certified Ecosystem}
+
+OIDC, being an extension of OAuth 2.0, benefits from the same wide variety of libraries available for OAuth 2.0, but with additional support for OIDC-specific features and certification. For example, certified libraries by the OpenID Foundation, such as \texttt{oidc-client-js}, \texttt{phpOIDC}, \texttt{pyoidc} and \texttt{GKIDP Broker} have passed conformance tests to ensure they adhere to the OIDC specifications and security best practices\footnote{https://openid.net/developers/certified-openid-connect-implementations/}. This certification process provides an additional layer of assurance for developers and organizations looking to implement OIDC, as it indicates that the library has been rigorously tested for compliance and security. Thus, providing a more standardized and reliable ecosystem for OIDC implementations compared to the more fragmented OAuth 2.0 ecosystem. 
+
+The OIDC maturity is high, its core specification is stable, but it still evolving as most of the libraries are actively maintained. In other words, OIDC has reached a level of maturity where the core features are well-established and widely supported, but there is still room for innovation and improvement in the ecosystem. This balance allows developers to benefit from a stable protocol while also having access to new features and improvements as they are developed. 
+
+In addition, the OIDC community is active and engaged, with many resources available for learning and troubleshooting. The certification process also helps to ensure that libraries are kept up to date with the latest security best practices and features, which is crucial in the rapidly evolving landscape of identity and access management.
+
+Furthermore, the certification reduces the risk of compatibility issues and security vulnerabilities. In fact, major cloud platforms and identity providers (e.g., Google, Microsoft, Okta) support OIDC and often require or recommend using certified libraries for integration. This widespread adoption and support further contribute to the maturity and reliability of the OIDC ecosystem assuring his long-term viability and making it a compelling choice for new applications and integrations.
+
+During the experimental deployment, using a certified OIDC library (Authlib) for the Flask app provided confidence in the implementation and helped to ensure that the integration with Keycloak was secure and compliant with the OIDC specifications. Also, it drastically reduced implementation errors as the library handled nonce generation, ID Token validation, and PKCE which would have been error-prone if implemented manually. This experience highlighted the benefits of using certified libraries, as it simplified the development process and reduced the risk of security issues or compatibility problems.
+
+However, it is important for developers to stay informed about the latest developments in the OIDC ecosystem and to choose libraries that are actively maintained and have a strong track record of security and reliability.
+
+
+In summary, these ecosystems implies that, OIDC offers the best balance of maturity, tooling quality, and future-proofing. OAuth 2.0's fragmentation is mitigated by active community support. SAML's stable but stagnant ecosystem suits organizations prioritizing predictability over innovation. But, the choice should consider other specific needs of the project such as the expertise available within the organization and implementation complexity, which will be discussed in the next sections. 
+
+\subsection{Protocol Complexity}
 
 A protocol's implementation complexity can significantly influence its adoption and long-term viability. 
 
 %SAML, being an older protocol, has a well-established ecosystem with mature libraries and tools as already mentioned in previous chapters. In contrast, OAuth 2.0 and OIDC, while more modern and flexible, may require a certain level of expertise to implement correctly, especially when it comes to securing the authorization flows and managing tokens. 
 
-\subsection{SAML}
+\subsubsection{SAML}
 
 SAML's implementation complexity is often attributed to its reliance on XML and the need for a robust Public Key Infrastructure (PKI) to manage certificates for signing and encryption. When a developer implements SAML, they must ensure that the XML messages are correctly formatted, and that the necessary cryptographic operations are properly handled. This can lead to a steeper learning curve for those unfamiliar with XML and PKI concepts. However, the availability of mature libraries and tools can mitigate some of these challenges, making it easier for organizations with existing SAML infrastructure to maintain and extend their implementations. For example, in the experiment realized in chapter \ref{chapter2}, the configuration established was like shown in figure \ref{fig:saml_architecture}, where Keycloak acted as a Service Provider (SP) and SAML Mock as an Identity Provider (IdP). The user agent (browser) interacted with Keycloak, which in turn communicated with the SAML Mock IdP to authenticate the user. This setup highlighted the complexity of managing SAML assertions and the necessary configurations for both the SP and IdP.
 
@@ -64,7 +105,7 @@ Besides that, SAML complexity resides in the need of significant configuration f
 
 Finally, for developers who are building new applications and plan to use OIDC for authentication and receive request to support SAML, the use of an authentication broker, or SAML library is highly recommended\cite[p.~136]{wilson2022}. SAML library helps to handle the SAML interactions, thus allowing the developers to focus on the application core functionalities instead of dealing with the complexities of SAML protocol\cite[p.~136]{wilson2022}. However, this also means that the organization must invest in maintaining the SAML library and ensuring it stays up to date with any changes in the SAML specifications or security best practices.
 
-\subsection{OAuth 2.0 and OIDC}
+\subsubsection{OAuth 2.0 and OIDC}
 
 OAuth 2.0 and OIDC, on the other hand, are designed to be more developer-friendly and easier to implement. They use JSON for data exchange, which is generally simpler to work with than XML. Additionally, the token-based approach of OAuth 2.0 and OIDC allows for more straightforward integration with modern web applications and APIs. 
 
@@ -180,15 +221,13 @@ And the second one is shown in Figure \ref{fig:oidc_brokering}, where Keycloak a
     \label{fig:oidc_brokering}
 \end{figure}
 
-In summary, due to its complexity and current popularity, it is quite difficult to find developers with SAML expertise, which can lead to increased implementation and maintenance costs. In contrast, OAuth 2.0 and OIDC are more widely adopted and have a larger pool of developers familiar with their concepts and implementations, making them more accessible for new projects. 
+In summary, due to its complexity and current popularity, it is quite difficult to find developers with SAML expertise, which can lead to increased implementation and maintenance costs. In contrast, OAuth 2.0 and OIDC are more widely adopted and have a larger pool of developers familiar with their concepts and implementations, making them more accessible for new projects. However, the choice between these protocols should also consider other factors such as the existing infrastructure, as SAML may still be the preferred choice for certain enterprise applications that require its robust features and established ecosystem.
 
-However, the choice between these protocols should also consider other factors such as the specific use case, security requirements, and existing infrastructure, as SAML may still be the preferred choice for certain enterprise applications that require its robust features and established ecosystem.
-
-\section{Infrastructure requirements}
+\subsection{Infrastructure requirements}
 
 The infrastructure required to deploy each protocol varies in complexity, cost and operational overhead.
 
-\subsection{SAML: Heavy Infrastructure Requirements}
+\subsubsection{SAML: Heavy Infrastructure Requirements}
 
 According to OASIS SAML editors \cite{oasissaml}, the core components of a SAML infrastructure include:
 
@@ -196,14 +235,14 @@ According to OASIS SAML editors \cite{oasissaml}, the core components of a SAML 
     \item Identity Provider (IdP):  This can be open source (e.g., Shibboleth, Keycloak, SimpleSAMLphp) or commercial (e.g., Okta, OneLogin). 
     \item Service Provider (SP) agent: SAML library or plugin integrated into the application (e.g., Keycloak SAML adapter, Spring Security SAML, Flask SAML).
     \item Public Key Infrastructure (PKI) and Certificate Management: SAML relies heavily on XML signatures and encryption, which require a robust PKI to manage certificates for signing and encrypting SAML assertions. This adds complexity and operational overhead, as organizations must maintain the security of their private keys and ensure that certificates are properly rotated and updated (manually in general).
-    \item Metadata management: SAML relies on exchanging metadata between IdPs and SPs, which can be complex to manage, especially in large deployments with multiple partners.
-    \item Clock synchronization: SAML assertions have strict temporal validation (e.g. \texttt{NotBefore}, \texttt{NotOnOrAfter}). 
+    \item Metadata management: SAML relies on exchanging metadata between IdPs and SPs, which can be complex to manage, especially in large deployments with multiple partners. As it can required manual intervention to update the metadata when changes occur(e.g., certificate rotation, endpoint changes) but technical solutions exist to automate this process\cite[p.~139]{wilson2022}.  
+    \item Clock synchronization: SAML assertions have strict temporal validation\cite[p.~139]{wilson2022}. 
 \end{itemize}
 
 
 For example, a deployment of 10 applications and 1 IdP. It would require at least 10 SAML SP integrations (such as SAML library or plugin per app), 10 SAML metadata exchanges (one for each SP), and a robust PKI with at least 1 certificate for the IdP and 1 for each SP, along with a secure process for managing these certificates. 
 
-\subsection{OAuth 2.0 and OIDC: Lighter Infrastructure Requirements}
+\subsubsection{OAuth 2.0 and OIDC: Lighter Infrastructure Requirements}
 
 OIDC and OAuth 2.0 share the same core infrastructure components\cite[p.~246]{richer2017}, which include:
 \begin{itemize}
@@ -216,52 +255,150 @@ OAuth 2.0 and OIDC do not require a PKI for their core functionality, as they re
 
 For example, a deployment of 10 applications and 1 AS/OP. It would require at least 10 OIDC client registrations (configuration, not infrastructure), 1 AS/OP (e.g., Keycloak), 1 key pair for AS signing (if using asymmetric signing), and standard HTTP/HTTPS infrastructure with TLS certificates for secure communication. Additionally, no agents or plugins needed for the applications: in the experiment realized, the Flask app integrated with Keycloak using a lightweight OIDC library (Authlib), which simplified the implementation.
 
-\subsection{Comparative Summary}
-
+To summarize:
 \begin{table}[H]
     \centering
     \label{tab:infrastructure_comparison}
-    \begin{tabularx}{\textwidth}{@{} l X X @{}}
-        \toprule
+    \begin{tabularx}{\textwidth}{@{} l | X X @{}}
+        %\toprule
         \textbf{Aspect} & \textbf{SAML 2.0 (Legacy/Enterprise)} & \textbf{OAuth 2.0 / OIDC (Modern)} \\ \hline
-        \midrule
+        %\midrule
         \textbf{Trust Model} & Based on static X.509 certificates. & Based on dynamic JWKS (JSON keys). \\
-        \addlinespace
+        %\addlinespace
         \textbf{Key Management} & Manual distribution of XML metadata. & Auto-discovery via \texttt{.well-known} endpoint. \\
-        \addlinespace
+        %\addlinespace
         \textbf{Maintenance} & Manual renewal (high risk of service outage). & Transparent rotation and automatic updates. \\
-        \addlinespace
+        %\addlinespace
         \textbf{Clock Sync} & \textbf{Critical} & \textbf{Tolerant} \\
-        \addlinespace
+        %\addlinespace
         \textbf{Deployment} & Often requires server-side Agents or proxies. & Native integration via lightweight libraries. \\
-        \bottomrule
+        %\bottomrule
     \end{tabularx}
     \caption{Infrastructure summary: SAML vs. OIDC}
 \end{table}
-
-This comparative summary highlights the significant differences in infrastructure requirements between SAML and OIDC. SAML's infrastructure overhead is justifies in mature, stable environments where the cost is amortized over time and the organization has the necessary expertise to manage it. In contrast, OIDC's lighter infrastructure requirements make it more suitable for modern applications and organizations that prioritize agility and ease of integration. However, the choice between these protocols should also consider other factors such as library availability and others aspects that will be discussed in the next sections.
-
-
-\section{Maturity and library disponibility}
-
 \begin{comment}
-CHAPITRE 3 : ANALYSE COMPARATIVE OPÉRATIONNELLE
-3.1. Complexité de mise en œuvre
-    - Courbes d'apprentissage
-    - Prérequis infrastructure (PKI, serveurs, etc.)
-    - Disponibilité bibliothèques 
-    > Évaluation des coûts initiaux
-    
-3.2. Maintenance et évolution
-    - Gestion certificats SAML vs clés JWT
-    - Évolution des specs (stabilité SAML vs dynamisme OAuth/OIDC)
-    - Compétences disponibles sur le marché
-    > Évaluation des coûts long terme
-    
-3.3. Interopérabilité et écosystème
-    - SAML : maturité entreprise, base installée
-    - OAuth 2.0 : fragmentation implémentations
-    - OIDC : certifications, standardisation
-    > Impact sur le choix technologique
+
 \end{comment}
+This table highlights the significant differences in infrastructure requirements between SAML and OIDC. SAML's infrastructure overhead is justifies in mature, stable environments where the cost is amortized over time and the organization has the necessary expertise to manage it. In contrast, OIDC's lighter infrastructure requirements make it more suitable for modern applications and organizations that prioritize agility and ease of integration. However, the choice between these protocols should also consider other factors such as library availability and others aspects that will be discussed in the next sections.
+
+\section{Cost and resources}
+
+While implementation complexity determines the technical efoort required, cost analysis reveals the financial commitment organizations must make to deploy and sustain identity protocols. This section delves into the multifaceted cost structures associated with SAML, OAuth 2.0, and OIDC, encompassing initial deployment expenses, ongoing maintenance costs, hidden costs, and the return on investment (ROI) that organizations can expect from each protocol. By examining these financial dimensions, we can provide a comprehensive understanding of the economic implications of choosing one protocol over another in enterprise contexts.
+
+\subsection{Initial deployment costs}
+
+Initial deployment costs include all expenses incurred from project initiation to the first production authentication. These include software licensing (if applicable), hardware procurement, infrastructure provisioning, professional services, and internal labor.
+
+\subsubsection{SAML: High Upfront Investment}
+
+Deploying a SAML 2.0 identity infrastructure in an enterprise environment demands a substantial upfront financial and operational investment. This high initial cost is driven by two main factors: proprietary software licensing fees and the necessity of specialized professional services to navigate the protocol's inherent structural complexity.
+
+On the software licensing front, organizations face a stark choice between commercial platforms and open-source ecosystems. While robust open-source alternatives such as Keycloak, Shibboleth, and SimpleSAMLphp incur a \$0 baseline software cost, they fundamentally shift the financial burden onto personnel, requiring highly skilled engineers. Alternatively, off-the-shelf commercial Identity-as-a-Service (IDaaS) and on-premises solutions present significant recurring operational expenditures:
+\begin{itemize}
+    \item \textbf{Okta\footnote{https://www.okta.com/fr-fr/pricing/\#accordion-8e840992ec-item-6753b9a3bf}:} Typically priced between \$2 and \$5 per user/month, usually governed by an annual minimum commitment (often starting at 25 users).
+    \item \textbf{Ping Identity\footnote{https://www.pingidentity.com/en/platform/pricing.html}:} Tailored for large-scale enterprises with pricing ranging from \$3 to \$8 per user/month, generally targeting environments with 500+ users.
+    \item \textbf{Microsoft AD FS\footnote{https://www.microsoft.com/fr-be/security/business/microsoft-entra-pricing?market=be}:} While bundled with Windows Server licenses, it carries an underlying infrastructure cost ranging from €5,20 to €10,40 per user/month. 
+\end{itemize}
+
+Beyond software procurement, the scarcity of deep SAML expertise in the developer market necessitates a heavy reliance on external professional services for initial deployment. Due to the nuances of state maintenance (such as managing the \texttt{RelayState} parameter) and XML signature verification, standard web developers frequently struggle to implement secure, reliable connections without assistance. 
+
+Consequently, enterprises must engage specialized external consultants, whose billing rates near of hundreds euros per hour. For example, a typical production-grade deployment necessitate substantial blocks of engineering hours: a baseline of around a hundreds hours for the central IdP architecture, supplemented by an additional ten to fifteen hours of custom integration for each subsequent SP. For a standard environment integrating 10 target applications (SPs), this translates to an immediate upfront consulting expenditure of around a few tens of thousands euros. 
+
+Besides that, the infrastructure needs requires also significant capital investment. For instance, the IdP server (VM or physical server) must at least has 4 CPU cores, 8GB RAM which can cost around a few hundreds euros per month. Additionally, the high availability and redundancy requirements for enterprise-grade SAML deployments often necessitate multiple servers, and load balancers, which can further increase the initial infrastructure costs. Moreover, the need for a robust PKI to manage certificates for signing and encryption adds another layer of complexity and cost, as organizations must invest in secure key management solutions and processes to ensure the integrity of their SAML assertions.
+
+This steep financial barrier reinforces the reality that while SAML 2.0 provides an undeniably robust enterprise trust boundary, its deployment architecture is heavily front-loaded with both capital and operational expenses.
+
+\subsubsection{OAuth 2.0 and OIDC: Moderate-to-low Upfront Investment}
+
+In contrast to SAML, deploying OAuth 2.0 and OIDC typically involves a more moderate upfront investment, particularly when leveraging open-source solutions like Keycloak or ORY Hydra. These platforms offer comprehensive features for both protocols without the need for costly licensing fees, making them attractive options for organizations with budget constraints. However, while the software itself may be free, there are still costs associated with deployment, such as potential professional services for initial setup and configuration. Additionally, an investment in the necessary infrastructure to host the AS or OP, which can include virtual machines, load balancers, and secure storage for keys and tokens is required. 
+
+Beside that, the use of commercial IDaaS providers for OAuth 2.0 and OIDC can also introduce significant costs supplemented by the cost of professional services for initial setup and configuration. For example, Auth0\footnote{https://auth0.com/pricing} offers a free tier for up to 7,000 active users and unlimited logins, but beyond that, pricing starts at \$23 per month for up to 1,000 active users, with additional costs for features like multi-factor authentication and enterprise connections. Okta\footnote{https://www.okta.com/fr-fr/pricing/?tab-0=1} with an enterprise baseline pricing starting at \$ 3K/month. AWS Cognito\footnote{https://aws.amazon.com/cognito/pricing/} offers a free tier for up to 50,000 monthly active users, with costs starting at \$0.0055 per monthly active user beyond the free tier. These pricing models can be more accessible for organizations that are just starting out or have smaller user bases, but costs can escalate as the number of users increases or as additional features are required. 
+
+Furthermore, although OAuth 2.0 and OIDC are more familiar to modern developers, organizations may still need to invest in training or consulting services to ensure a secure and compliant implementation, especially for complex use cases or large-scale deployments. For example, a typical deployment of OAuth 2.0 or OIDC using Keycloak may require an initial investment of a few thousands euros for infrastructure provisioning and professional services, which is significantly lower than the upfront costs associated with SAML. Moreover, the availability of extensive documentation and community support for OAuth 2.0 and OIDC can help reduce the need for external consulting services, further lowering the initial deployment costs. Overall, while there are still costs associated with deploying OAuth 2.0 and OIDC, they are generally more accessible and manageable for organizations compared to the high upfront investment required for SAML deployments. However, it is important for organizations to carefully evaluate their specific requirements and constraints when choosing between these protocols, as the lower initial costs of OAuth 2.0 and OIDC may be offset by other factors such as long-term maintenance costs.
+
+\subsection{Long-term maintenance costs}
+
+After the initial deployment, protocols incur ongoing costs for operations, upgrades, security patching, certificate renewal, etc. 
+
+\subsubsection{SAML: High Maintenance Costs}
+
+Firstly, the certificate management is a critical aspect of SAML maintenance. It must be done every 1-3 years depending on the certificate lifespan which often ranges from 1 to 3 years\cite{workos}. So, if an organization has 10 SPs, it would require at least 11 certificates (1 for the IdP and 1 for each SP). Each certificate renewal can cost around a few hundreds euros as the certificates must be generated by a trusted third-party Public Certificate Authority. Thus, leading to a recurring cost of a few thousands euros every 1-3 years just for certificate management. Additionally, the manual nature of SAML maintenance can lead to increased labor costs, as organizations may need to dedicate internal resources or hire external consultants to manage updates, troubleshoot issues, and ensure ongoing compliance with security best practices. However, automation tools and services can help reduce labor costs by 50\% or more, but they still require an initial investment and ongoing monitoring to ensure they are functioning correctly.
+
+Secondly, metadata management is another significant maintenance cost for SAML deployments. As SAML relies on exchanging metadata between IdPs and SPs, any changes to the configuration (e.g., endpoint URLs, new SP addition or attributes modified) should be propagate to all involved parties. This can be a complex and time-consuming process, especially in large deployments with multiple partners. For example, if an organization has 10 SPs, any change to the IdP configuration would require updating the metadata for all 10 SPs, which can lead to increased labor costs and potential downtime if not managed properly. Additionally, organizations may need to invest in tools or services to automate metadata management, which can further increase maintenance costs but can help reduce the risk of errors and improve the efficiency of the maintenance process.
+
+Finally, the complexity of SAML can lead to higher maintenance costs due to the need for specialized expertise. Finding developers with the necessary skills to maintain and troubleshoot SAML deployments can be challenging and expensive. This scarcity of expertise can lead to increased labor costs for ongoing maintenance and support. 
+
+\subsubsection{OAuth 2.0 and OIDC: Lower Maintenance Costs}
+
+Firstly, the key rotation is automatic and transparent in OIDC as the AS/OP can publish its public keys via a \texttt{jwks\_uri} endpoint, allowing clients to automatically retrieve the updated keys without requiring manual intervention. Key rotation only needs manual interventions when the key are compromised or when the organization wants to rotate them for security reasons. However, the automatic key rotation feature of OIDC can help mitigate the risks associated with key compromise and reduce the likelihood of service disruptions due to invalid or expired keys.
+
+Secondly, the client management in OIDC is a self-service process that can be handled by the AS/OP's administrative interface, allowing organizations to easily add, modify, or remove CAs without needing to update metadata on the client side. Additionally, the use of standardized protocols and widely adopted libraries for OAuth 2.0 and OIDC can help reduce maintenance costs by providing a larger pool of developers with the necessary skills to manage and troubleshoot these deployments.
+
+Finally, the lower complexity of OAuth 2.0 and OIDC can lead to low maintenance costs due to the availability of a larger number of developers familiar with these protocols. This can make it easier for organizations to find internal resources or hire external consultants to manage ongoing maintenance and support, further reducing costs compared to SAML deployments.
+
+In summary, the lowest total cost, fastest deployment and minimal operational overhead is achieved with OIDC hosted on a cloud provider. Followed by OIDC self-hosted which is also low cost, but provides full control over the infrastructure and data, and requires moderate operational overhead. On the other hand, SAML vendor-hosted has high costs, and vendor dependent, but with reduced complexity. Finally SAML self-hosted has the highest costs, and highest complexity but with full control over the infrastructure and data. Ultimately, the selection among these architectural paradigms must not be financial alone, but must carefully weigh contextual constraints such as legacy system compatibility, performance characteristics, and long-term scalability requirements.
+
+%ToDO : validate
+\section{Experimental Results and Empirical Validation}
+
+The empirical observations gathered during the deployment of both identity architectures within the laboratory environment provide a concrete, data-driven validation of the implementation complexities, infrastructure footprints, and maintenance liabilities discussed throughout this chapter. By monitoring transactional lifecycles, debugging protocol-specific rejections, and refactoring configuration codebases, distinct operational insights were captured.
+
+\subsubsection{Ecosystem and Library Behavior in Practice}
+
+The practical integration phase highlighted the contrast between a standardized, certified ecosystem (OIDC) and a stagnant, rigid one (SAML 2.0). 
+\begin{itemize}
+    \item \textbf{OIDC Integration via Authlib:} Utilizing a certified library facilitated core mechanisms like OAuth client registration, nonce verification, and PKCE handling. However, abstract tooling did not completely protect development from implementation flaws. For instance, an improper structural data call within the Flask callback route (\texttt{/login/callback}) treated identity attributes as an implicit property key rather than a method, triggering a hard \texttt{TypeError: 'method' object is not iterable}. This required an immediate refactoring to explicit token-unpacking methods (\texttt{oauth.keycloak.parse\_id\_token(token)}).
+    \item \textbf{SAML 2.0 Integration via python3-saml:} While the library successfully abstracted raw XML parsing, it immediately exposed the protocol's lack of flexibility regarding modern environment mapping. During the initial login sequence, a structural validation error crashed the application layer, raising an \texttt{Exception: No hostname defined}. This occurred because the toolkit expects a strict dictionary formatting key structure (\texttt{http\_host}) from the proxy middleware. Even with Werkzeug's \texttt{ProxyFix} applied globally to the Flask application factory, manual adjustments were necessary inside the route payload helper to explicitly bind \texttt{"http\_host": request.host}.
+\end{itemize}
+
+\subsubsection{Protocol and Structural Complexity Obstacles}
+
+The laboratory environment provided a clear demonstration of how protocol design choices impact developer friction and time-to-market. 
+
+On one hand, SAML 2.0's heavy reliance on absolute cryptographic validation and structural schema compliance introduced major bottlenecks at the Identity Provider (Keycloak) boundary. Upon front-channel redirection, Keycloak aborted the transaction with a \texttt{VerificationException: SigAlg was null} log trace. Because the client application was sending unsigned \texttt{AuthnRequest} payloads, Keycloak's default security policy for the client domain rejected the handshake. Resolving this required navigating to the client’s \texttt{Keys} management tab to manually disable the \texttt{Client signature required} toggle. 
+
+Furthermore, once user registration was enabled at the realm level, multi-value attribute processing triggered an immediate client-side rejection:
+\begin{lstlisting}[text, caption={SAML Attribute Mapping Collision}]
+OneLogin_Saml2_ValidationError : Found an Attribute element with duplicated Name
+\end{lstlisting}
+This error directly validates the theoretical complexity of SAML data mappings. Keycloak emitted separate, repeating XML nodes for each mapped group scope (\texttt{<saml:Attribute Name="Role">}), which the strict parsing engine flagged as a structural duplication vulnerability. This required re-engineering the Client Scope settings in Keycloak to force the \texttt{Single Role Attribute} flag, compressing user scopes into a single valid XML array container.
+
+On the other hand, the OIDC implementation demonstrated far greater agility but exposed microservice networking pitfalls. Relying on Keycloak's standard configuration metadata endpoint initially induced a network routing asymmetry between the isolated container bridge and the host browser, triggering a \texttt{urllib3.exceptions.MaxRetryError} and a \texttt{ConnectionRefusedError}. Decoupling host-resolution behavior via environment flags (\texttt{KC\_HOSTNAME: localhost}) was necessary to allow stateless token validation back-channels to coexist with front-channel redirects.
+
+\subsubsection{Infrastructure Footprint and Maintenance Metrics}
+
+The transactional logs gathered during active authentication cycles confirmed a massive divergence in network data density and transport binding mechanics, as summarized in Table \ref{tab:laboratory_metrics}.
+
+\begin{table}[H]
+    \centering
+    \begin{tabularx}{\textwidth}{@{} l X X @{}}
+        %\toprule
+        \textbf{Observed Metric} & \textbf{OpenID Connect (OIDC Flow)} & \textbf{SAML 2.0 (Direct Integration)} \\
+        %\midrule
+        \textbf{Payload Format} & JSON / Base64 URL String (JWT) & Verbose XML Document (\texttt{SAMLResponse}) \\
+       % \addlinespace
+        \textbf{Average Packet Size} & $\sim$ 1.2 KB -- 1.8 KB & $\sim$ 5.5 KB -- 8.0 KB \\
+        %\addlinespace
+        \textbf{Transport Binding} & HTTP GET / Authorization Headers & HTTP POST via User Agent Form \\
+        %\addlinespace
+        \textbf{Validation Mechanics} & Automated discovery via \texttt{jwks\_uri} & Heavy structural canonicalization \\
+        %\bottomrule
+    \end{tabularx}
+    \caption{Empirical Payload and Protocol Performance Metrics from Laboratory Logs}
+    \label{tab:laboratory_metrics}
+\end{table}
+
+The embedding of full X.509 certificate chains inside the SAML assertions inflated the average token package size up to 8.0 KB, a huge contrast to OIDC's compact string formats. 
+
+Finally, establishing robust session termination semantics exposed deep configuration and maintenance differences. While the OIDC implementation required precise state preservation within the Flask cookie container (\texttt{session["id\_token"]}) to supply an explicit \texttt{id\_token\_hint} to the provider, SAML 2.0 ran into a protocol binding mismatch. Initial logout flows threw a critical client error:
+\begin{lstlisting}[text, caption={SAML SLS Binding Mismatch}]
+OneLogin_Saml2_Error: SAML LogoutRequest/LogoutResponse not found. 
+Only supported HTTP_REDIRECT Binding
+\end{lstlisting}
+This failure occurred because Keycloak was executing Single Logout (SLO) cycles via HTTP \texttt{POST} forms, whereas the client toolkit's \texttt{process\_slo()} function was explicitly configured for query-string based HTTP \texttt{REDIRECT} (GET) transactions. To resolve this without introducing specialized cryptographic signing layers to the application script, the architecture had to be manually synchronized by creating a dedicated callback route (\texttt{/saml/sls}) and stripping the \texttt{POST} binding options from Keycloak’s fine-grained advanced client configurations.
+
+\subsubsection{Operational Synthesis}
+
+In alignment with the financial and logistical constraints discussed in this chapter, the laboratory results confirm that while OIDC offers significant operational agility, lightweight integration patterns, and transparent key management, it shifts the engineering burden toward complex state tracking and container network routing. Conversely, SAML 2.0 demands high upfront investment, manual mapping alignment, and rigid binding synchronization. Ultimately, utilizing a centralized IdP like Keycloak as an abstracting layer successfully insulates SaaS application developers from legacy XML technical debt, keeping client codebases modern, secure, and maintainable.
+
 \end{document}
