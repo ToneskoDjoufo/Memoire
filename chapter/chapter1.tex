@@ -1,7 +1,7 @@
 \documentclass[../memoire.tex]{subfiles}
 \begin{document}
 
-\chapter{Security protocol fundamentals} \label{ch_prem}
+\chapter{ Fundamentals of Security Protocols} \label{ch_prem}
 
 
 \section{Key concept} \label{sec_un}
@@ -11,25 +11,23 @@
 
 To understand the differences between authentication, authorization, and federation, it is important to first define each concept and clarify their respective roles in the context of enterprise identity and access management.
 
-\subsubsection*{Authentication}
+\subsubsection{Authentication}
 
-Authentication is the process by which an application confirms the identity of a user, device, or system. It is a critical component of security, as it ensures that only legitimate entities can access sensitive information or perform certain actions. Authentication can be achieved through various methods, including passwords, biometrics (such as fingerprint or facial recognition), security tokens, or multifactor authentication (MFA), which combines multiple methods for enhanced security. The primary goal of authentication is to establish trust and verify the identity of users or systems before granting access to resources or services\cite[p.~240]{richer2017}.
+It is the process by which an application confirms the identity of a user, a device, or a system. It is a critical component of security, as it ensures that only legitimate entities can access sensitive information or perform certain actions. Authentication can be achieved through various methods, including passwords, biometrics (such as fingerprint or facial recognition), security tokens, or multifactor authentication (MFA), which combines multiple methods for enhanced security. The primary goal of authentication is to establish trust and verify the identity of users or systems before granting access to resources or services\cite[p.~240]{richer2017}.
 
 For example, when a student logs into their university portal, they are required to provide their matriculation number, password, or a second factor such as a code sent to their mobile device to confirm their identity. 
 
-\subsubsection*{Authorization}
+\subsubsection{Authorization}
 
-Authorization, by contrast, is the process of granting a user or system access to a resource on behalf of another user or system\cite[p.~5]{richer2017}. A critical distinction must be drawn here: authorization does not necessarily imply that the granting system knows who is making the request — only that a valid authorization credential (such as a token or code) has been presented. As long as this credential is valid, access is granted, regardless of the actual identity of the requester.
+Contrarily, authorization is the process of granting a user or system access to a resource on behalf of another user or system\cite[p.~5]{richer2017}. A critical distinction must be drawn here: authorization does not necessarily imply that the granting system knows who is making the request — only that a valid authorization credential (such as a token or code) has been presented. As long as this credential is valid, access is granted, regardless of the actual identity of the requester.
 
-Consider a user who wish to publish a photo on a social media platform: the platform requests access to the user's photo gallery. The platform will not ask for the user's credentials, but for obtaining a limited, scoped access only for that specific resource. This separation of identity from access rights is foundational to modern authorization frameworks, and forms the core purpose of OAuth 2.0, as will be examined in Chapter 2.
+Consider a user who wish to publish a photo on a social media platform: the platform requests access to the user's photo gallery. The platform will not ask for the user's credentials, but for obtaining a limited, scoped access only for that specific resource. This separation of identity from access rights forms the core purpose of OAuth 2.0.
 
-\subsubsection*{Federation}
+\subsubsection{Federation}
 
-Federation also known as identity federation, allows users to access multiple services or applications by using a single, agreed-upon set of credentials\cite[p.~134]{wilson2022}. This is achieved through the establishment of trust relationships between different domains or organizations, enabling the sharing of authentication and authorization information across these entities. Besides that, this allows service providers (SP) to delegate the authentication process to a trusted identity provider (IdP), which manages user credentials and authentication on their behalf.
+Also known as identity federation, allows users to access multiple services or applications by using a single, agreed-upon set of credentials\cite[p.~134]{wilson2022}. This is achieved through the establishment of trust relationships between different domains or organizations, enabling the sharing of authentication and authorization information across these entities. Besides that, this allows service providers (SP) to delegate the authentication process to a trusted identity provider (IdP), which manages user credentials and authentication on their behalf.
 
 Furthermore, identity federation simplifies the user experience by reducing the number of credentials users need to memorize, while also enhancing security by centralizing authentication and access control. For example, a student may use their university credentials to access different online services provided by the university, such as email, learning management systems, video-conference applications, and library resources, without needing to possess separate accounts on each platform. 
-
-\subsubsection*{Summary}
 
 To summarize, authentication care about the identity of the user ("Who you are?"), while authorization focus on the permissions and access rights ("What you can do?"), and federation is about enabling seamless access across different services ("How can your identity be trusted across different systems?"). These concepts are deeply interrelated: a system may handle authorization without authentication (OAuth 2.0), authentication without federation, or combine all three within a unified framework (OpenID Connect, SAML). The way each of the three protocols OAuth 2.0, OIDC, and SAML handles these three dimensions largely determines their respective strengths, weaknesses, and domains of applicability in an enterprise context.
 
@@ -39,21 +37,19 @@ A useful analogy to understand this relationship is to think of a key (authentic
 
 In the context of identity and access management protocols, tokens, assertions, and sessions are core concepts by which authentication and authorization are achieved and maintained. While these terms are sometimes used interchangeably, they represent distinct mechanisms, each with specific characteristics depending on the protocol in use.
 
-\subsubsection*{Tokens}
+\subsubsection{Tokens}
 
 A token is a piece of data that represents a credential about a user, system or an authorization grant. Tokens serve as portable proof that can be presented to access protected resources without requiring the user to reauthenticate each time. As Richer and Sanso observe: "OAuth 2.0 is ultimately about tokens"\cite[p.~181]{richer2017}. A principle that extends beyond OAuth 2.0 to encompass OIDC and in a broader sense, SAML. 
-Tokens can take various forms depending on the protocol and use case, further detailed in the next chapter. The fundamental distinction between these formats lies not in their purpose, but in their structure, size (e.g. see annexes \ref{annex:saml_assertion} and \ref{annex:oidc_json}), and validation mechanism (e.g. XML signatures for SAML assertions vs cryptographic signatures for JWTs). 
+Tokens can take various forms depending on the protocol and use case, further detailed in the next chapter. The fundamental distinction between these formats lies not in their purpose, but in their structure, size (e.g. see annexes \ref{annex:saml_assertion} and \ref{annex:oidc_json}), and validation mechanism. 
 
-\subsubsection*{Assertions}
+\subsubsection{Assertions}
 
 An assertion is a formal statement made by a trusted authority (IdP) about a subject (user or system). In the SAML protocol, assertions are the primary mechanism for transmitting authentication and authorization information between the IdP and SP.
 
-%A SAML assertion is always digitally signed (using XML Signature) to ensure integrity and authenticity, and may optionally be encrypted for confidentiality.
-
- Additionally, an assertion can be assimilated to a token, but it is more than that: It contains field like (subject, authentication statement, attribute statement, conditions) that provide detailed information about the authentication event and the user's attributes. For example, a SAML assertion is issued by the IdP after successful authentication and is consumed by the service provider (SP) to make access control decisions. While a token in OAuth 2.0 or OIDC is typically issued by an AS or IdP and is consumed by a resource server (RP) to grant access to protected resources.
+ Additionally, an assertion can be assimilated to a token, but it is more than that: It contains fields like (subject, authentication statement, attribute statement, conditions) that provide detailed information about the authentication event and the user's attributes. For example, a SAML assertion is issued by the IdP after successful authentication and is consumed by the service provider (SP) to make access control decisions. While a token in OAuth 2.0 or OIDC is typically issued by an AS or IdP and is consumed by a resource server (RP) to grant access to protected resources.
 
 % TODO rewrite this part
-\subsubsection*{Sessions}
+\subsubsection{Sessions}
 
 A session represents a temporary, stateful interaction between a user and a system. Sessions are critical for maintaining context across multiple requests without requiring repeated authentication, thereby improving user experience while managing security trade-offs. It is created when the user authenticates. It can be managed by the application itself (application-level session) or by the identity provider (IdP/OP session) in the context of federated authentication.
 

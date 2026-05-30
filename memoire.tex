@@ -34,7 +34,9 @@
 \usepackage{tcolorbox}
 \usepackage{seqsplit} % Optional but highly recommended for long strings
 \usepackage{bookmark}
+\usepackage{booktabs}
 \usepackage{tabularx}
+\usepackage{subcaption}
 
 % Custom colors for XML highlighting
 \definecolor{dkgreen}{rgb}{0,0.6,0}
@@ -212,7 +214,7 @@ The author, DJOUFO TAFEJO Tonesko, certifies that he has complied with the ethic
 
 \addcontentsline{toc}{chapter}{Introduction}
 
-\section*{Introduction} \label{sec_intro}
+% \section*{Introduction} \label{sec_intro}
 
 %Ce travail repose sur l'article~\cite{Silverman:1987} qui 
 %concerne un algorithme de factorisation, problème fondamental dans le cadre du chiffrement RSA ... 
@@ -220,11 +222,13 @@ The author, DJOUFO TAFEJO Tonesko, certifies that he has complied with the ethic
 
 
 
-The different parts of this work are discussed in the next chapters. 
+% The different parts of this work are discussed in the next chapters. 
 
 % TODO : Rearrange the chapter to find a way to add the following points:
 % The experimental work 
 % The different results obtained
+
+\subfile{./chapter/intro.tex}
 
 \subfile{./chapter/chapter1.tex}
 

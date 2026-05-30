@@ -18,7 +18,7 @@ The quality, variety, and support of available libraries directly impact impleme
 
 SAML has a well-established ecosystem with mature libraries and tools. For example, \texttt{\seqsplit{Shibboleth}} is implemented in Java, widely used, highly configurable, enterprise grade, but complex to set up and maintain. \texttt{SimpleSAMLphp} is implemented in PHP, widely used, and good documentation. \texttt{Keycloak} is implemented in Java, modern IdP with SAML support, excellent UI and documentation. \texttt{WSO2 Identity Server} is implemented in Java, supports SAML and OIDC, enterprise features, but can be resource-intensive and complex. All the preceding libraries are open source and server-side. For client-side, there are libraries like \texttt{python-saml}, \texttt{ruby-saml}, and \texttt{node-saml}, which provide SAML support for various programming languages. However, the SAML library ecosystem is relatively stagnant\cite{shibboleth2024}, with fewer updates and innovations compared to more modern protocols like OIDC. This can lead to challenges in finding up-to-date libraries that support the latest security best practices and features.
 
-SAML maturity comes with many advantages but also with some drawbacks. For instance, the mature libraries have been battle-tested in production for many years and edges cases are well known and documented. However, the lack of innovation and updates can lead to security vulnerabilities if the libraries are not actively maintained. Additionally, empirical data from platforms such as Stack Overflow indicates a significant decrease in new queries related to SAML implementation over the past several years (see Figure \ref{saml_trend} in annexes) while SAML remains quite difficult to debug and implement. 
+SAML maturity comes with many advantages but also with some drawbacks. For instance, the mature libraries have been battle-tested in production for many years and edges cases are well known and documented. One good example is the Dynamic Configuration of proxy IdPs. However, the lack of innovation and updates can lead to security vulnerabilities if the libraries are not actively maintained. Additionally, empirical data from platforms such as Stack Overflow indicates a significant decrease in new queries related to SAML implementation over the past several years (see Figure \ref{saml_trend} in annexes) while SAML remains quite difficult to debug and implement. 
 
 \subsubsection{OAuth 2.0: Fragmented but Evolving Ecosystem}
 
@@ -38,6 +38,8 @@ The OIDC maturity is high, its core specification is stable, but it still evolvi
 
 In addition, the OIDC community is active and engaged, with many resources available for learning and troubleshooting. The certification process also helps to ensure that libraries are kept up to date with the latest security best practices and features, which is crucial in the rapidly evolving landscape of identity and access management.
 
+Despite OIDC does not yet cover all the advanced and complex use cases that SAML can support, the OIDC community is actively working on addressing these gaps and standardizing the protocol's capabilities. For example, OIDC has not yet standardized support for Dynamic Configuration of Proxy IdPs, but there are ongoing discussions and proposals in the community to address this use case. This indicates that while OIDC is currently more focused on modern applications and use cases, it is actively evolving to support a wider range of scenarios, which will further enhance its maturity and adoption in the future. 
+
 Furthermore, the certification reduces the risk of compatibility issues and security vulnerabilities. In fact, major cloud platforms and identity providers (e.g., Google, Microsoft, Okta) support OIDC and often require or recommend using certified libraries for integration. This widespread adoption and support further contribute to the maturity and reliability of the OIDC ecosystem assuring his long-term viability and making it a compelling choice for new applications and integrations.
 
 During the experimental deployment, using a certified OIDC library (Authlib) for the Flask app provided confidence in the implementation and helped to ensure that the integration with Keycloak was secure and compliant with the OIDC specifications. Also, it drastically reduced implementation errors as the library handled nonce generation, ID Token validation, and PKCE which would have been error-prone if implemented manually. This experience highlighted the benefits of using certified libraries, as it simplified the development process and reduced the risk of security issues or compatibility problems.
@@ -55,7 +57,9 @@ A protocol's implementation complexity can significantly influence its adoption 
 
 \subsubsection{SAML}
 
-SAML's implementation complexity is often attributed to its reliance on XML and the need for a robust Public Key Infrastructure (PKI) to manage certificates for signing and encryption. When a developer implements SAML, they must ensure that the XML messages are correctly formatted, and that the necessary cryptographic operations are properly handled. This can lead to a steeper learning curve for those unfamiliar with XML and PKI concepts. However, the availability of mature libraries and tools can mitigate some of these challenges, making it easier for organizations with existing SAML infrastructure to maintain and extend their implementations. For example, in the experiment realized in chapter \ref{chapter2}, the configuration established was like shown in figure \ref{fig:saml_architecture}, where Keycloak acted as a Service Provider (SP) and SAML Mock as an Identity Provider (IdP). The user agent (browser) interacted with Keycloak, which in turn communicated with the SAML Mock IdP to authenticate the user. This setup highlighted the complexity of managing SAML assertions and the necessary configurations for both the SP and IdP.
+SAML's implementation complexity is often attributed to its reliance on XML and the need for a robust Public Key Infrastructure (PKI) to manage certificates for signing and encryption. When a developer implements SAML, they must ensure that the XML messages are correctly formatted, and that the necessary cryptographic operations are properly handled. This can lead to a steeper learning curve for those unfamiliar with XML and PKI concepts. However, the availability of mature libraries and tools can mitigate some of these challenges, making it easier for organizations with existing SAML infrastructure to maintain and extend their implementations. For example, in the experiment realized in chapter \ref{chapter2}, two SAML architecture was develloped. 
+
+Firstly, one configuration established was like shown in figure \ref{fig:saml_mock_architecture}, where Keycloak acted as a Service Provider (SP) and SAML Mock as an Identity Provider (IdP). The user agent (browser) interacted with Keycloak, which in turn communicated with the SAML Mock IdP to authenticate the user and further communicate with the Flask app via the OIDC protocol. This setup highlighted the complexity of managing SAML assertions and the necessary configurations for both the SP and IdP.
 
 \begin{figure}[htp]
     \centering
@@ -96,10 +100,65 @@ SAML's implementation complexity is often attributed to its reliance on XML and 
         \end{tikzpicture}
     }
     \caption{Identity Brokering Experimental Architecture}
-    \label{fig:saml_architecture}
+    \label{fig:saml_mock_architecture}
 \end{figure}
 
 Crucially, this setup works because Keycloak is implemented with the necessary SAML libraries and configurations to handle the SAML assertions from the IdP. Therefore, the complexity of enabling a SAML-based authentication in the SaaS application (Flask app) is abstracted away by Keycloak. Thus, reducing the implementation complexity for the Flask app, which only needs to implement OIDC to interact with Keycloak. This illustrates how leveraging an identity broker can mitigate some of the complexities associated with SAML, while still allowing the application to benefit from its features.
+
+Secondly, another configuration developed was like shown in Figuer \ref{fig:keycloak_flask_saml_direct}. In this architecture, Keycloak acted as the IdP and the Flask app as the SP. The user agent (browser) interacted directly with Keycloak to authenticate the user, and then Keycloak issued a SAML assertion to the Flask app after a successful authentication. 
+
+%Mise en contexte académique : Les étiquettes textuelles correspondent mot pour mot à vos observations de laboratoire (\texttt{SAMLResponse}, absence de signature sur l'AuthnRequest, et soumission POST finale sur l'URI de consommation d'assertion \texttt{/saml/acs}). Une excellente pièce jointe graphique pour votre analyse comparative opérationnelle !
+
+Additionnaly, the \texttt{AuthnRequest} was sent as an unsigned \texttt{HTTP GET} request to mitigate the complexity of signing the request to simplify the implementation at the client side. However, this approach is not recommended for production environments due to security implications. In a such environment, it is crucial to sign the AuthnRequest to ensure its integrity and authenticity, which adds an additional layer of security but also increases the implementation complexity.
+
+Furthermore, since the \texttt{AuthnRequest} arrow is directly send from the Flask app to Keycloak, it can be misleading as it may suggest that the Flask app is using back channel communication to interact with Keycloak. In reality, the Flask app generates the \texttt{AuthnRequest} and send an \texttt{HTTP 302 Redirect} code to the browser with a \texttt{location} URL target pointing to Keycloak with the \texttt{AuthnRequest} as a query parameter. Then, the browser follows the redirect and transfers the \texttt{AuthnRequest} to Keycloak without modify, look at or process it in any way. This emphasizes that the communication between the Flask app and Keycloak for the AuthnRequest is entirely front-channel and brokered by the browser, rather than a direct back channel communication between the two servers. This distinction is important as it highlights that SAML communication is made entirely through the browser.
+
+\begin{figure}[ht]
+    \centering
+    \resizebox{\textwidth}{!}{
+        \begin{tikzpicture}[
+            node distance=4cm,
+            box/.style={rectangle, draw, fill=blue!13, text width=3cm, align=center, 
+                        minimum height=1.6cm, rounded corners},
+            user/.style={circle, draw, fill=green!15, align=center, 
+                         minimum size=2.2cm, font=\small},
+            myarrow/.style={-{Stealth[scale=1.2]}, thick}
+        ]
+
+        \node[box] (flask) {\textbf{Flask App} \\ (Service Provider)};
+        \node[user, right=of flask] (user) {User Agent \\ (Browser)};
+        \node[box, right=of user] (keycloak) {\textbf{Keycloak} \\ (Identity Provider)};
+
+        % 1. Initiate Login (Local Session Check)
+        \draw[myarrow, bend left=-20] (user) to node[above, font=\footnotesize] {1. Access Secured Route} (flask);
+        
+        % 2. SAML AuthnRequest Auth Redirect (Front-Channel)
+        \draw[myarrow, thick, red, bend left=-27] (flask) to 
+            node[below, font=\footnotesize, sloped] {2. AuthnRequest (Unsigned GET)} (keycloak);
+            
+        % 3. Identity Authentication & Account Creation
+        \draw[myarrow, bend left=15] (keycloak) to 
+            node[below, font=\footnotesize] {3. Credentials / Register Link} (user);
+        \draw[myarrow, bend left=15] (user) to 
+            node[above, font=\footnotesize] {4. Submit Form} (keycloak);
+
+        % 4. SAML Assertion Response via Browser (Front-Channel POST Binding)
+        \draw[myarrow, thick, red] (keycloak) to 
+            node[font=\footnotesize, text width=3.5cm, align=center] {5. Encrypted XML Form  (\texttt{SAMLResponse})} (user);
+        \draw[myarrow, thick, red] (user) to 
+            node[font=\footnotesize, text width=3.5cm, align=center] {6. HTTP POST \\ to \texttt{/saml/acs}} (flask);
+
+        % Boundary for SAML Trust Domain (Brokered entirely via Browser)
+        \node[draw, gray, dashed, 
+              fit=(user) (flask) (keycloak), 
+              inner sep=1.2cm, yshift=-0.4cm,
+              label=above:{\textbf{SAML 2.0 Pure Front-Channel Trust Realm}}] {};
+
+        \end{tikzpicture}
+    }
+    \caption{Direct SAML 2.0 Integration: Browser-Brokered POST Binding Flow}
+    \label{fig:keycloak_flask_saml_direct}
+\end{figure}
 
 Besides that, SAML complexity resides in the need of significant configuration for support across different customer as their SAML IdPs may have different requirements, resulting in minor differences in the SAML assertions and flows\cite[p.~136]{wilson2022}. This can lead to increased maintenance overhead, as each integration may require custom adjustments and testing to ensure compatibility. For example, during the integration of the SAML Identity Provider, a \texttt{RelayState} null pointer error was identified. This highlighted the importance of state maintenance in the SAML 2.0 protocol. Unlike OIDC, which often handles state via a signed cookie or a simple query parameter, SAML requires the Identity Provider to echo back the \texttt{RelayState} to the Service Provider to correlate the asynchronous authentication response with the original request session. This can lead to potential issues if the \texttt{RelayState} is not properly maintained or if there are divergences in how different IdPs handle it. Therefore, developers must be vigilant in ensuring that the SAML implementation correctly manages state and handles any variations in IdP behavior to avoid authentication failures and ensure a smooth user experience.
 
@@ -341,29 +400,29 @@ In summary, the lowest total cost, fastest deployment and minimal operational ov
 %ToDO : validate
 \section{Experimental Results and Empirical Validation}
 
-The empirical observations gathered during the deployment of both identity architectures within the laboratory environment provide a concrete, data-driven validation of the implementation complexities, infrastructure footprints, and maintenance liabilities discussed throughout this chapter. By monitoring transactional lifecycles, debugging protocol-specific rejections, and refactoring configuration codebases, distinct operational insights were captured.
+The empirical observations gathered during the deployment of both identity architectures within the laboratory environment provide a concrete, data-driven validation of the implementation complexities, infrastructure footprints, and maintenance liabilities discussed throughout this chapter. By monitoring authentication transactions, debugging protocol-specific rejections, and refactoring configuration codebases, distinct information were captured.
 
 \subsubsection{Ecosystem and Library Behavior in Practice}
 
-The practical integration phase highlighted the contrast between a standardized, certified ecosystem (OIDC) and a stagnant, rigid one (SAML 2.0). 
+The practical integration part highlighted the contrast between a standardized, certified ecosystem (OIDC) and a stagnant, rigid one (SAML 2.0). 
 \begin{itemize}
-    \item \textbf{OIDC Integration via Authlib:} Utilizing a certified library facilitated core mechanisms like OAuth client registration, nonce verification, and PKCE handling. However, abstract tooling did not completely protect development from implementation flaws. For instance, an improper structural data call within the Flask callback route (\texttt{/login/callback}) treated identity attributes as an implicit property key rather than a method, triggering a hard \texttt{TypeError: 'method' object is not iterable}. This required an immediate refactoring to explicit token-unpacking methods (\texttt{oauth.keycloak.parse\_id\_token(token)}).
-    \item \textbf{SAML 2.0 Integration via python3-saml:} While the library successfully abstracted raw XML parsing, it immediately exposed the protocol's lack of flexibility regarding modern environment mapping. During the initial login sequence, a structural validation error crashed the application layer, raising an \texttt{Exception: No hostname defined}. This occurred because the toolkit expects a strict dictionary formatting key structure (\texttt{http\_host}) from the proxy middleware. Even with Werkzeug's \texttt{ProxyFix} applied globally to the Flask application factory, manual adjustments were necessary inside the route payload helper to explicitly bind \texttt{"http\_host": request.host}.
+    \item \textbf{OIDC Integration via Authlib:} Using an OIDC library facilitated core mechanisms like OAuth client registration, nonce verification, and PKCE handling. However, abstract tooling did not completely protect development from implementation errors. For instance, a wrong structural data call within the Flask callback route (\texttt{/login/callback}) treated identity attributes as an implicit property key rather than a method, triggering a hard \texttt{TypeError: 'method' object is not iterable}. This required a refactoring to explicit token retrieval methods (\texttt{oauth.keycloak.parse\_id\_token(token)}).
+    \item \textbf{SAML 2.0 Integration via python3-saml:} While the library successfully abstracted raw XML parsing, it immediately exposed the protocol's lack of flexibility compared to modern environment mapping. During the initial login sequence, a structural validation error crashed the application layer, raising an \texttt{Exception: No hostname defined}. This occurred because the toolkit expects a strict dictionary formatting key structure (\texttt{http\_host}) from the proxy middleware. Even with Werkzeug's \texttt{ProxyFix} applied globally to the Flask application factory, manual adjustments were necessary inside the route payload helper to explicitly bind \texttt{"http\_host": request.host}.
 \end{itemize}
 
 \subsubsection{Protocol and Structural Complexity Obstacles}
 
-The laboratory environment provided a clear demonstration of how protocol design choices impact developer friction and time-to-market. 
+The laboratory environment provided a clear demonstration of how protocol design choices impact developer difficulties and time-to-market. 
 
-On one hand, SAML 2.0's heavy reliance on absolute cryptographic validation and structural schema compliance introduced major bottlenecks at the Identity Provider (Keycloak) boundary. Upon front-channel redirection, Keycloak aborted the transaction with a \texttt{VerificationException: SigAlg was null} log trace. Because the client application was sending unsigned \texttt{AuthnRequest} payloads, Keycloak's default security policy for the client domain rejected the handshake. Resolving this required navigating to the client’s \texttt{Keys} management tab to manually disable the \texttt{Client signature required} toggle. 
+On one hand, SAML 2.0's heavy reliance on absolute cryptographic validation and structural schema compliance introduced major bottlenecks at the IdP (Keycloak) level. Upon front-channel redirection, Keycloak aborted the transaction with a \texttt{VerificationException: SigAlg was null} log trace. Because the CA was sending unsigned \texttt{AuthnRequest} payloads, Keycloak's default security policy for the client domain rejected the handshake. Resolving this required navigating to the client’s \texttt{Keys} management tab to manually disable the \texttt{Client signature required} property. 
 
 Furthermore, once user registration was enabled at the realm level, multi-value attribute processing triggered an immediate client-side rejection:
-\begin{lstlisting}[text, caption={SAML Attribute Mapping Collision}]
+\begin{lstlisting}[basicstyle=\ttfamily, caption={SAML Attribute Mapping Collision}]
 OneLogin_Saml2_ValidationError : Found an Attribute element with duplicated Name
 \end{lstlisting}
 This error directly validates the theoretical complexity of SAML data mappings. Keycloak emitted separate, repeating XML nodes for each mapped group scope (\texttt{<saml:Attribute Name="Role">}), which the strict parsing engine flagged as a structural duplication vulnerability. This required re-engineering the Client Scope settings in Keycloak to force the \texttt{Single Role Attribute} flag, compressing user scopes into a single valid XML array container.
 
-On the other hand, the OIDC implementation demonstrated far greater agility but exposed microservice networking pitfalls. Relying on Keycloak's standard configuration metadata endpoint initially induced a network routing asymmetry between the isolated container bridge and the host browser, triggering a \texttt{urllib3.exceptions.MaxRetryError} and a \texttt{ConnectionRefusedError}. Decoupling host-resolution behavior via environment flags (\texttt{KC\_HOSTNAME: localhost}) was necessary to allow stateless token validation back-channels to coexist with front-channel redirects.
+On the other hand, the OIDC implementation demonstrated far greater agility but exposed microservice networking pitfalls. Relying on Keycloak's standard configuration metadata endpoint initially induced a network routing asymmetry between the isolated container bridge(Docker) and the host browser(Safari), triggering a \texttt{urllib3.exceptions.MaxRetryError} and a \texttt{ConnectionRefusedError}. Decoupling host-resolution behavior via environment flags (\texttt{KC\_HOSTNAME: localhost}) was necessary to allow stateless token validation back-channels to coexist with front-channel redirects.
 
 \subsubsection{Infrastructure Footprint and Maintenance Metrics}
 
@@ -371,9 +430,9 @@ The transactional logs gathered during active authentication cycles confirmed a 
 
 \begin{table}[H]
     \centering
-    \begin{tabularx}{\textwidth}{@{} l X X @{}}
+    \begin{tabularx}{\textwidth}{@{} l | X X @{}}
         %\toprule
-        \textbf{Observed Metric} & \textbf{OpenID Connect (OIDC Flow)} & \textbf{SAML 2.0 (Direct Integration)} \\
+        \textbf{Observed Metric} & \textbf{OpenID Connect (OIDC Flow)} & \textbf{SAML 2.0 (Direct Integration)} \\ \hline
         %\midrule
         \textbf{Payload Format} & JSON / Base64 URL String (JWT) & Verbose XML Document (\texttt{SAMLResponse}) \\
        % \addlinespace
@@ -390,12 +449,14 @@ The transactional logs gathered during active authentication cycles confirmed a 
 
 The embedding of full X.509 certificate chains inside the SAML assertions inflated the average token package size up to 8.0 KB, a huge contrast to OIDC's compact string formats. 
 
+
+
 Finally, establishing robust session termination semantics exposed deep configuration and maintenance differences. While the OIDC implementation required precise state preservation within the Flask cookie container (\texttt{session["id\_token"]}) to supply an explicit \texttt{id\_token\_hint} to the provider, SAML 2.0 ran into a protocol binding mismatch. Initial logout flows threw a critical client error:
-\begin{lstlisting}[text, caption={SAML SLS Binding Mismatch}]
+\begin{lstlisting}[basicstyle=\ttfamily, caption={SAML SLS Binding Mismatch}]
 OneLogin_Saml2_Error: SAML LogoutRequest/LogoutResponse not found. 
 Only supported HTTP_REDIRECT Binding
 \end{lstlisting}
-This failure occurred because Keycloak was executing Single Logout (SLO) cycles via HTTP \texttt{POST} forms, whereas the client toolkit's \texttt{process\_slo()} function was explicitly configured for query-string based HTTP \texttt{REDIRECT} (GET) transactions. To resolve this without introducing specialized cryptographic signing layers to the application script, the architecture had to be manually synchronized by creating a dedicated callback route (\texttt{/saml/sls}) and stripping the \texttt{POST} binding options from Keycloak’s fine-grained advanced client configurations.
+This failure occurred because Keycloak was executing Single Logout (SLO) cycles via \texttt{HTTP POST} forms, whereas the client toolkit's \texttt{process\_slo()} function was explicitly configured for query-string based \texttt{HTTP REDIRECT (GET)} transactions. To resolve this, the architecture had to be manually synchronized by creating a dedicated callback route (\texttt{/saml/sls}) and deleting the \texttt{POST} binding options from Keycloak’s fine-grained advanced client configurations.
 
 \subsubsection{Operational Synthesis}
 
